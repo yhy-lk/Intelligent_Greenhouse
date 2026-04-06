@@ -1,0 +1,21 @@
+[package]
+name = "bsw"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+service = { path = "../service" }
+
+# 具体的硬件驱动 (Driver Implementation)
+embassy-stm32 = { workspace = true }
+embassy-time = { workspace = true } 
+
+smart-leds = { workspace = true }
+smart-leds-trait = { workspace = true }
+
+ssd1306 = { workspace = true }
+
+embedded-hal = { workspace = true }
+defmt = { workspace = true }
+embedded-graphics = { workspace = true }
+display-interface = { workspace = true }

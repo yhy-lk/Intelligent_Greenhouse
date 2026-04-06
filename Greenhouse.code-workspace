@@ -1,0 +1,30 @@
+{
+  "folders": [
+    {
+      "name": "ESP32S3_PlatformIO",
+      "path": "Src/ESP32S3_Arduino"
+    },
+    {
+      "name": "STM32F407_Rust",
+      "path": "Src/Stm32_Control"
+    }
+  ],
+  "settings": {
+    
+    "rust-analyzer.cargo.sysroot": "discover",
+    "rust-analyzer.showDebugHover": true,
+    "rust-analyzer.check.allTargets": false,
+    "rust-analyzer.cargo.target": "thumbv7em-none-eabi",
+    "rust-analyzer.cargo.allTargets": false,
+    "rust-analyzer.checkOnSave.allTargets": false,
+    "rust-analyzer.cargo.features": [],
+    "rust-analyzer.procMacro.enable": true,
+    "rust-analyzer.cargo.noDefaultFeatures": true,
+    "rust-analyzer.diagnostics.disabled": [
+        "unresolved-proc-macro"
+    ],
+
+    "platformio-ide.activateProjectOnTextEditorChange": true,
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+  }
+}

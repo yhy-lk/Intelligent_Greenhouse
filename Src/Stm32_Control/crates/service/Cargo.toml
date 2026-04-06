@@ -1,0 +1,15 @@
+[package]
+name = "service"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# 通用依赖
+embassy-time = { workspace = true }
+embedded-graphics = { workspace = true }
+defmt = { workspace = true }
+embassy-sync = { workspace = true }
+
+
+smart-leds = { workspace = true }
+smart-leds-trait = { workspace = true }

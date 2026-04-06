@@ -1,0 +1,18 @@
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+# replace STM32F429ZITx with your chip as listed in `probe-rs chip list`
+runner = "probe-rs run --chip STM32F407VETx --protocol swd"
+
+[build]
+target = "thumbv7em-none-eabi"
+
+[env]
+DEFMT_LOG = "info"
+
+# HTTP/HTTPS proxy configuration for faster downloads
+# [http]
+# proxy = "127.0.0.1:7897"
+# check-revoke = false
+
+# [https]
+# proxy = "127.0.0.1:7897"
+# check-revoke = false

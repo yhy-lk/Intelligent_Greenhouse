@@ -1,0 +1,66 @@
+[workspace]
+members = [
+    "crates/service",
+    "crates/app",
+    "crates/bsw",
+    "firmware"
+]
+resolver = "2"
+
+[workspace.dependencies]
+embassy-stm32 = { version = "0.5.0", features = ["defmt", "stm32f407ve", "unstable-pac", "memory-x", "time-driver-tim2", "exti", "chrono", "low-power"] }
+embassy-sync = { version = "0.7.2", features = ["defmt"] }
+embassy-executor = { version = "0.9.0", features = ["arch-cortex-m", "executor-thread", "executor-interrupt", "defmt"] }
+embassy-time = { version = "0.5.0", features = ["defmt", "defmt-timestamp-uptime", "tick-hz-1_000_000"] }
+embassy-usb = { version = "0.5.1", features = ["defmt"] }
+embassy-net = { version = "0.8.0", features = ["defmt", "tcp", "dhcpv4", "medium-ethernet"] }
+embassy-net-wiznet = { version = "0.2.1", features = ["defmt"] }
+embassy-futures = { version = "0.1.2" }
+embassy-embedded-hal = { version = "0.5.0", features = ["defmt"] }
+
+defmt = "1.0.1"
+defmt-rtt = "1.0.0"
+
+cortex-m = { version = "0.7.6", features = ["inline-asm", "critical-section-single-core"] }
+cortex-m-rt = "0.7.0"
+embedded-hal = "1.0.0"
+embedded-hal-bus = { version = "0.3.0", features = ["async"] }
+embedded-io = { version = "0.7.1" }
+embedded-io-async = { version = "0.7.0" }
+panic-probe = { version = "1.0.0", features = ["print-defmt"] }
+futures-util = { version = "0.3.30", default-features = false }
+heapless = { version = "0.8", default-features = false }
+critical-section = "1.1"
+nb = "1.0.0"
+embedded-storage = "0.3.1"
+micromath = "2.0.0"
+usbd-hid = "0.9.0"
+static_cell = "2"
+chrono = { version = "^0.4", default-features = false }
+ssd1306 = { version = "0.10.0" , features = ["async"]}
+embedded-graphics = "0.8.0"
+display-interface = "0.5.0"
+num-traits = { version = "0.2.15", default-features = false }
+
+smart-leds = "0.4.0" # 推荐引入这个标准库
+smart-leds-trait = "0.3.0" # 推荐引入这个标准库
+
+shared-bus = "0.3.0"
+
+[profile.release]
+debug = 2
+lto = true
+opt-level = "z"
+
+[profile.dev]
+opt-level = 0
+
+[profile.release-with-debug]
+inherits = "release"
+debug = 2
+
+
+
+# [[bin]]
+# name = "main"
+# path = "firmware/src/main.rs"

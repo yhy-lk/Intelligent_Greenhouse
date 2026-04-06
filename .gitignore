@@ -1,0 +1,15 @@
+# 忽略文档目录
+Document/
+
+# PlatformIO 生成文件及缓存
+Src/ESP32S3_Arduino/.pio/
+Src/ESP32S3_Arduino/.vscode/
+
+# Rust 生成文件及依赖锁
+Src/Stm32_Control/target/
+Src/Stm32_Control/Cargo.lock
+Src/Stm32_Control/firmware/Example_Stm32f4/
+
+# 操作系统级缓存
+Thumbs.db
+.DS_Store

@@ -1,0 +1,43 @@
+[package]
+edition = "2024"
+name = "stm32f407vet6-embassy"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+# STM32F407VET6 configuration
+app = { path = "../crates/app" }
+service = { path = "../crates/service" }
+bsw = { path = "../crates/bsw" }
+
+embassy-executor = { workspace = true }
+embassy-stm32 = { workspace = true }
+embassy-time = { workspace = true }
+embassy-embedded-hal = { workspace = true }
+
+cortex-m = { workspace = true }
+cortex-m-rt = { workspace = true }
+defmt = { workspace = true }
+defmt-rtt = { workspace = true }
+panic-probe = { workspace = true }
+embedded-graphics = { workspace = true }
+ssd1306 = { workspace = true }
+heapless = { workspace = true }
+embassy-sync = { workspace = true }
+embedded-hal-bus = { workspace = true }
+embedded-hal = { workspace = true }
+
+static_cell = { workspace = true }
+
+smart-leds = { workspace = true }
+smart-leds-trait = { workspace = true }
+
+[package.metadata.embassy]
+build = [
+  { target = "thumbv7em-none-eabi", artifact-dir = "target/thumbv7em-none-eabi/release" }
+]
+
+# [[bin]]
+# name = "main"
+# path = "src/main.rs"
