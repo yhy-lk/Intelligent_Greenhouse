@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "platformio.platformio-ide",      // 核心：PlatformIO 全家桶 (会自动带入 C/C++ 插件)
+    "ms-vscode.cpptools",             // 核心：C/C++ 智能提示 (显式声明更好)
+    "jeff-hykin.better-cpp-syntax",   // 增强：更好的 C++ 语法高亮
+    "cschlosser.doxdocgen",           // 增强：Doxygen 注释自动生成
+    "usernamehw.errorlens",           // 强推：错误直接显示在行尾 (C++ 报错也很难看，这个很有用)
+    "gruntfuggly.todo-tree",          // 辅助：管理 TODO 注释
+    "ms-vscode.hexeditor"             // 工具：十六进制查看固件 bin 文件
+  ]
+}
