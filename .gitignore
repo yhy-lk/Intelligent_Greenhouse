@@ -10,6 +10,7 @@ Src/ESP32S3_Arduino/src/Config/secrets.h
 Src/Stm32_Control/target/
 Src/Stm32_Control/Cargo.lock
 Src/Stm32_Control/firmware/Example_Stm32f4/
+Src/Stm32_Control/memory.map
 
 # 操作系统级缓存
 Thumbs.db

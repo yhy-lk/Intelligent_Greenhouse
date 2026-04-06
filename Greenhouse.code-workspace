@@ -1,8 +1,12 @@
 {
   "folders": [
     {
+      "name": "📁 根目录管理 (Git/Config)",
+      "path": "."
+    },
+    {
       "name": "ESP32S3_PlatformIO",
-      "path": "Src/ESP32S3_Arduino"
+      "path": "Src/Esp32_Interaction"
     },
     {
       "name": "STM32F407_Rust",
