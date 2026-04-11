@@ -234,7 +234,7 @@ async fn main(spawner: Spawner) {
     spawner.spawn(can_rx::can_rx_task(can_rx_handle)).unwrap();
     spawner.spawn(can_tx::can_tx_task(can_tx_handle)).unwrap(); 
 
-    spawner.spawn(hw_test::hardware_smoke_test_task()).unwrap();
+    // spawner.spawn(hw_test::hardware_smoke_test_task()).unwrap();
 
 }
 
