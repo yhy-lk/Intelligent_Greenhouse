@@ -62,6 +62,7 @@ use crate::domains::{
     can_rx, // 新增
     can_tx, // 新增
     ventilation_fan,
+    hw_test,
 };
 
 mod shared;
@@ -232,6 +233,8 @@ async fn main(spawner: Spawner) {
     // 5. 挂载收发调度任务
     spawner.spawn(can_rx::can_rx_task(can_rx_handle)).unwrap();
     spawner.spawn(can_tx::can_tx_task(can_tx_handle)).unwrap(); 
+
+    spawner.spawn(hw_test::hardware_smoke_test_task()).unwrap();
 
 }
 

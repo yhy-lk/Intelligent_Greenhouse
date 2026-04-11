@@ -32,8 +32,8 @@ impl SystemConfig {
         let mut config = embassy_stm32::i2c::Config::default();
         config.frequency = embassy_stm32::time::Hertz(400_000);
         config.gpio_speed = embassy_stm32::gpio::Speed::High;
-        config.scl_pullup = true;
-        config.sda_pullup = true;
+        config.scl_pullup = false;
+        config.sda_pullup = false;
 
         config
     }

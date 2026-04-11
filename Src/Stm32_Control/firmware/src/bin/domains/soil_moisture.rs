@@ -41,7 +41,7 @@ pub async fn soil_moisture_task(
         }
 
         // --- 打印直观数据 ---
-        trace!(
+        info!(
             "实时数据报告:\n \
              - 土壤湿度: {}%\n \
              - 芯片温度: {} °C (内部)\n \

@@ -50,7 +50,7 @@ pub async fn bh1750_task(
                     state.current.light_intensity = Some(meas);
                 } // state 离开作用域，锁在此处立即释放
            
-                trace!("BH1750 Measurement - Lux: {}", meas);
+                info!("BH1750 Measurement - Lux: {}", meas);
             }
             Err(e) => {
                 error!("BH1750 read failed: {:?}", e);

@@ -34,7 +34,7 @@ pub async fn mg995_task(
             };
 
             ch2.set_duty_cycle_fraction(pulse_us, PWM_PERIOD_US);
-            trace!("Window Actuator State Update: {} -> Pulse: {} us", target_state, pulse_us);
+            info!("Window Actuator State Update: {} -> Pulse: {} us", target_state, pulse_us);
 
             current_state = Some(target_state);
 

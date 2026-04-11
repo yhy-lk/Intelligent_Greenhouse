@@ -9,7 +9,7 @@ rustflags = [
 target = "thumbv7em-none-eabihf"
 
 [env]
-DEFMT_LOG = "trace"
+DEFMT_LOG = "info"
 
 # HTTP/HTTPS proxy configuration for faster downloads
 # [http]

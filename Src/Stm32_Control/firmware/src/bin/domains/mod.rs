@@ -20,3 +20,4 @@ pub mod humidifier;
 pub mod can_rx;
 pub mod can_tx;
 pub mod ventilation_fan;
+pub mod hw_test; 

@@ -3,7 +3,7 @@
 
 // 硬件配置
 #define LED_PIN     2
-#define NUM_LEDS    25
+#define NUM_LEDS    12
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 
@@ -21,7 +21,7 @@ public:
         FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS)
                .setCorrection(TypicalLEDStrip);
         FastLED.setMaxPowerInVoltsAndMilliamps(5, 1000);
-        FastLED.setBrightness(100);
+        FastLED.setBrightness(50);
     }
 
     // 设置模式（纯内存操作，极其快速）
@@ -49,7 +49,7 @@ public:
                     // 1. 拖尾效果：每次变暗一点点
                     fadeToBlackBy(leds, NUM_LEDS, 20);
                     // 2. 计算位置
-                    int pos = beatsin16(30, 0, NUM_LEDS - 1);
+                    uint16_t pos = (millis() / 100) % NUM_LEDS;
                     // 3. 赋值（不用 +=，防止刷新率波动时颜色溢出）
                     leds[pos] = CRGB::Blue;
                 }

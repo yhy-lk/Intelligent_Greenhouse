@@ -21,7 +21,6 @@ pub async fn oled_ui_task(
     loop {
         let led_count = led_toggle_count.wait().await;
 
-        info!("Updating display with LED count: {}", led_count);
         app::ui::draw_ui(&mut display, led_count).await;
 
         trace!("Flushing display");
