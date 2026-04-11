@@ -16,3 +16,6 @@ platformio.ini.local
 # Other
 .DS_Store
 Thumbs.db
+
+
+src/Config/secrets.h
