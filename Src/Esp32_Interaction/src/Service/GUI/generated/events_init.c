@@ -16,6 +16,26 @@
 #endif
 
 
+static void screen_slider_1_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_VALUE_CHANGED:
+    {
+        int current_val = lv_slider_get_value(guider_ui.screen_slider_1);
+        custom_slider_event_send(current_val);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void events_init_screen (lv_ui *ui)
+{
+    lv_obj_add_event_cb(ui->screen_slider_1, screen_slider_1_event_handler, LV_EVENT_ALL, ui);
+}
+
 
 void events_init(lv_ui *ui)
 {

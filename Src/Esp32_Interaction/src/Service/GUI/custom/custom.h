@@ -17,6 +17,8 @@ extern "C" {
 
 void custom_init(lv_ui *ui);
 
+void custom_slider_event_send(int value);
+
 #ifdef __cplusplus
 }
 #endif
