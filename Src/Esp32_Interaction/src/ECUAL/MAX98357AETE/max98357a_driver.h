@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MCAL/i2s_hal.h"
+#include "i2s_hal.h"
 
 class Max98357aDriver {
 public:

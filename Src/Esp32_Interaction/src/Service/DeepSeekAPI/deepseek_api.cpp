@@ -3,6 +3,13 @@
 #include <WiFi.h>
 #include "../../Config/secrets.h"
 
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include "esp_log.h" // 引入ESP-IDF日志宏
+
+// 定义当前文件的日志标签
+static const char *TAG = "DEEPSEEK_API";
+
 DeepSeekApi::DeepSeekApi() {
     last_status_code = 0;
     last_error = "";
@@ -15,13 +22,13 @@ DeepSeekApi::DeepSeekApi() {
 }
 
 bool DeepSeekApi::connect_to_wifi() {
-    Serial.printf("[DeepSeek] Connecting to Wi-Fi %s...\n", WIFI_SSID);
+    ESP_LOGI(TAG, "Connecting to Wi-Fi %s...", WIFI_SSID);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     
     unsigned long startTime = millis();
     while (WiFi.status() != WL_CONNECTED && millis() - startTime < 10000) {
-        delay(500);
-        Serial.print(".");
+        vTaskDelay(pdMS_TO_TICKS(500)); // 替换 delay
+        ESP_LOGD(TAG, "Waiting for Wi-Fi connection..."); // 避免使用点号刷屏，改用 Debug 级别输出
     }
     return WiFi.status() == WL_CONNECTED;
 }
@@ -32,7 +39,7 @@ bool DeepSeekApi::is_connected() {
 
 void DeepSeekApi::clear_history() {
     chat_history.clear();
-    Serial.println("[DeepSeek] Chat history cleared.");
+    ESP_LOGI(TAG, "Chat history cleared.");
 }
 
 std::string DeepSeekApi::ask(const std::string& question, const DeepSeekConfig& config) {
@@ -40,7 +47,7 @@ std::string DeepSeekApi::ask(const std::string& question, const DeepSeekConfig& 
         if (!connect_to_wifi()) return "Error: No Wi-Fi";
     }
     
-    Serial.printf("[DeepSeek] Free SRAM: %u bytes\n", ESP.getFreeHeap());
+    ESP_LOGI(TAG, "Free SRAM: %u bytes", ESP.getFreeHeap());
     
     std::string json_request = build_request_json(question, config);
     if (json_request.empty()) return "Error: JSON build failed";
@@ -49,7 +56,7 @@ std::string DeepSeekApi::ask(const std::string& question, const DeepSeekConfig& 
     http_client.clear_headers();
     http_client.set_header("Authorization", "Bearer " + std::string(DEEPSEEK_API_KEY));
     
-    Serial.println("[DeepSeek] Sending raw request via Custom HttpClient...");
+    ESP_LOGI(TAG, "Sending raw request via Custom HttpClient...");
     
     // 使用你自己的底层库发起 POST
     std::string raw_response = http_client.post(
@@ -65,7 +72,7 @@ std::string DeepSeekApi::ask(const std::string& question, const DeepSeekConfig& 
 
     if (last_status_code == 200) {
         if (raw_response.empty() || raw_response.find("Error:") == 0) {
-            Serial.println("[DeepSeek] 致命错误：底层的 custom http 读回来的数据不对劲！");
+            ESP_LOGE(TAG, "致命错误：底层的 custom http 读回来的数据不对劲！");
             result = raw_response;
         } else {
             // 解析纯净的 JSON (你的 HttpClient 已经帮你完美剔除了 Chunked 头部)
@@ -91,14 +98,15 @@ std::string DeepSeekApi::ask(const std::string& question, const DeepSeekConfig& 
                     }
                 }
             } else {
-                Serial.printf("[DeepSeek] JSON Parse Failed: %s\n", error.c_str());
-                Serial.println("[DeepSeek] Raw JSON Snippet: " + String(raw_response.substr(0, 200).c_str()));
+                ESP_LOGE(TAG, "JSON Parse Failed: %s", error.c_str());
+                // 使用 %s 格式化输出 std::string 的部分内容，避免使用 Arduino String 拼接
+                ESP_LOGE(TAG, "Raw JSON Snippet: %s", raw_response.substr(0, 200).c_str());
                 result = "Error: JSON Parse Failed";
             }
         }
     } else {
         last_error = http_client.get_last_error();
-        Serial.printf("[DeepSeek] HTTP Error %d: %s\n", last_status_code, last_error.c_str());
+        ESP_LOGE(TAG, "HTTP Error %d: %s", last_status_code, last_error.c_str());
         result = "Error: HTTP " + std::to_string(last_status_code);
     }
     

@@ -1,7 +1,11 @@
 #include "voice_assistant_service.h"
-#include "../../MCAL/i2s_hal.h"
-#include "../../Config/secrets.h"
+#include "i2s_hal.h"
+#include "secrets.h"
 #include <driver/i2s.h> // 引入底层驱动，用于动态切换采样率
+#include "esp_log.h"    // 引入ESP-IDF日志宏
+
+// 定义当前文件的日志标签
+static const char *TAG = "VOICE_SERVICE";
 
 VoiceAssistantService::VoiceAssistantService() 
     : current_state(VoiceState::WAITING), 
@@ -17,26 +21,26 @@ VoiceAssistantService::~VoiceAssistantService() {
 }
 
 bool VoiceAssistantService::init() {
-    Serial.println("[VoiceService] Initializing Audio Engine...");
+    ESP_LOGI(TAG, "Initializing Audio Engine...");
     if (!I2SHal::getInstance().begin()) {
-        Serial.println("[VoiceService] I2S Engine Failed!");
+        ESP_LOGE(TAG, "I2S Engine Failed!");
         return false;
     }
 
     if (psramFound()) {
         record_buffer = (int16_t*)ps_malloc(MAX_PSRAM_BYTES);
-        Serial.printf("[VoiceService] Allocated %d bytes in PSRAM.\n", MAX_PSRAM_BYTES);
+        ESP_LOGI(TAG, "Allocated %d bytes in PSRAM.", MAX_PSRAM_BYTES);
     } else {
-        Serial.println("[VoiceService] PSRAM not found! Allocation failed.");
+        ESP_LOGE(TAG, "PSRAM not found! Allocation failed.");
         return false;
     }
 
     if (!baidu_api.init(std::string(BAIDU_API_KEY), std::string(BAIDU_SECRET_KEY))) {
-        Serial.println("[VoiceService] Baidu API Init Failed!");
+        ESP_LOGE(TAG, "Baidu API Init Failed!");
         return false;
     }
 
-    Serial.println("[VoiceService] Initialization Complete.");
+    ESP_LOGI(TAG, "Initialization Complete.");
     return true;
 }
 
@@ -74,7 +78,7 @@ void VoiceAssistantService::state_machine_tick() {
                 int average_volume = sum / samples_read;
 
                 if (average_volume > VOICE_THRESHOLD) {
-                    Serial.printf("\n[VoiceService] Voice Detected! Vol: %d\n", average_volume);
+                    ESP_LOGI(TAG, "Voice Detected! Vol: %d", average_volume);
                     current_state = VoiceState::RECORDING;
                     recorded_samples_count = 0; 
                     current_silent_samples = 0; 
@@ -114,7 +118,7 @@ void VoiceAssistantService::state_machine_tick() {
                     // 2. 🚀 新增：噪音过滤拦截器 (过滤小于 0.8 秒的声音)
                     float actual_record_seconds = (float)recorded_samples_count / SAMPLE_RATE;
                     if (actual_record_seconds < 0.8f) {
-                        Serial.printf("[VoiceService] 录音过短 (%.2f 秒)，判定为突发噪音，已忽略。\n", actual_record_seconds);
+                        ESP_LOGW(TAG, "录音过短 (%.2f 秒)，判定为突发噪音，已忽略。", actual_record_seconds);
                         current_state = VoiceState::WAITING; // 直接放弃，不发给百度，切回等待状态
                     } else {
                         // 正常语音，进入识别流程
@@ -128,9 +132,9 @@ void VoiceAssistantService::state_machine_tick() {
         case VoiceState::PROCESSING_STT: {
             current_text = baidu_api.speech_to_text(record_buffer, recorded_samples_count);
             if (!current_text.empty()) {
-                Serial.println("=============================");
-                Serial.println(("[User Audio] " + current_text).c_str());
-                Serial.println("=============================");
+                ESP_LOGI(TAG, "=============================");
+                ESP_LOGI(TAG, "[User Audio] %s", current_text.c_str());
+                ESP_LOGI(TAG, "=============================");
                 current_state = VoiceState::PROCESSING_LLM; 
             } else {
                 current_state = VoiceState::WAITING;
@@ -139,18 +143,18 @@ void VoiceAssistantService::state_machine_tick() {
         }
 
         case VoiceState::PROCESSING_LLM: {
-            Serial.println("[VoiceService] 思考中... (Asking DeepSeek)");
+            ESP_LOGI(TAG, "思考中... (Asking DeepSeek)");
             
             // 🚀 调用浴火重生的 DeepSeek 大脑！
             std::string llm_response = deepseek_api.ask(current_text);
 
             if (llm_response.find("Error:") == 0) {
-                Serial.println("[VoiceService] LLM 处理失败，中断对话。");
+                ESP_LOGE(TAG, "LLM 处理失败，中断对话。");
                 current_state = VoiceState::WAITING;
             } else {
-                Serial.println("=============================");
-                Serial.println(("[DeepSeek回答] " + llm_response).c_str());
-                Serial.println("=============================");
+                ESP_LOGI(TAG, "=============================");
+                ESP_LOGI(TAG, "[DeepSeek回答] %s", llm_response.c_str());
+                ESP_LOGI(TAG, "=============================");
                 
                 // 将回答传递给接下来的 TTS 状态
                 current_text = llm_response;
@@ -161,7 +165,7 @@ void VoiceAssistantService::state_machine_tick() {
 
         case VoiceState::PROCESSING_TTS: {
             if (baidu_api.text_to_speech(current_text, record_buffer, MAX_PSRAM_BYTES, downloaded_bytes_count)) {
-                Serial.printf("[VoiceService] TTS Downloaded: %d Bytes\n", downloaded_bytes_count);
+                ESP_LOGI(TAG, "TTS Downloaded: %d Bytes", downloaded_bytes_count);
                 current_state = VoiceState::PLAYBACK;
             } else {
                 current_state = VoiceState::WAITING;
@@ -170,7 +174,7 @@ void VoiceAssistantService::state_machine_tick() {
         }
 
         case VoiceState::PLAYBACK: {
-            Serial.println("[VoiceService] 播放声音...");
+            ESP_LOGI(TAG, "播放声音...");
             
             // ==========================================
             // 🚀 架构师级补丁：动态解析 WAV 头并调整 I2S 时钟
@@ -186,7 +190,7 @@ void VoiceAssistantService::state_machine_tick() {
                 real_sample_rate = 16000;
             }
             
-            Serial.printf("[VoiceService] 侦测到音频真实采样率: %d Hz\n", real_sample_rate);
+            ESP_LOGI(TAG, "侦测到音频真实采样率: %d Hz", real_sample_rate);
 
             // 动态切换 I2S 硬件时钟！ (假设你底层使用的是 I2S_NUM_0)
             i2s_set_sample_rates(I2S_NUM_0, real_sample_rate);

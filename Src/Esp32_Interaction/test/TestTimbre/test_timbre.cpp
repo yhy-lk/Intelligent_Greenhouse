@@ -3,9 +3,9 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-#include "MCAL/i2s_hal.h"
-#include "ECUAL/MAX98357AETE/max98357a_driver.h"
-#include "Config/secrets.h"
+#include "i2s_hal.h"
+#include "max98357a_driver.h"
+#include "secrets.h"
 
 #include <driver/i2s.h>
 

@@ -1,21 +1,21 @@
 /**
  * @file sensor_state.h
- * @brief Smart Greenhouse Digital Twin - Middleware Service Layer
- * 
- * This module implements a digital twin service layer for smart greenhouse systems.
- * It maintains both current sensor readings and target settings for all nodes,
- * providing a clean abstraction between CAN protocol layer and JSON/AI logic layer.
- * 
- * Architecture positioning:
- * - Above: CAN Protocol Layer (raw CAN data)
- * - Below: JSON/AI Logic Layer (standardized API for data access)
- * 
- * Key features:
- * - Maintains current state and target settings for all nodes (digital twin)
- * - No dependency on ArduinoJson or specific hardware drivers
- * - Pure C++ implementation using standard libraries only
- * - Memory-optimized using fixed arrays (space-for-time tradeoff)
- * - Thread-safe for single-threaded ESP32-S3 applications
+ * @brief 智能温室数字孪生 - 中间件服务层 (纯 C 重构版)
+ * * 本模块为智能温室系统实现了一个“数字孪生”状态服务层。
+ * 它维护了所有节点当前的传感器读数（真实状态）和目标设定值（期望状态），
+ * 在底层的 CAN 协议层与上层的 JSON/LVGL UI 逻辑层之间提供了一个干净的抽象接口。
+ * * 架构定位:
+ * - 上层: LVGL UI 层 / JSON 业务逻辑层 (标准化的数据访问，无锁等待)
+ * - 下层: CAN 协议层 (原始 CAN 数据的解析与写入)
+ * * 核心特性 (v2.0):
+ * - 纯 C 语言实现：完美兼容 LVGL，消除了 C++ 命名空间和类的耦合。
+ * - 线程安全：内部封装了 FreeRTOS 互斥锁 (Mutex)，保证多任务并发读写的原子性。
+ * - UI 防撕裂：提供整体“快照(Snapshot)”读取机制，防止 LVGL 渲染时数据不一致。
+ * - 内存优化：使用固定大小的静态数组（空间换时间），无任何动态内存分配 (malloc)。
+ * * @warning 【严重警告 - 中断安全】
+ * 本模块内部的所有读写 API 均使用了 FreeRTOS 的互斥锁 (xSemaphoreTake/Give)。
+ * 绝对禁止在任何中断服务例程 (ISR) 中调用本文件中的任何函数！
+ * 如果在 ISR 中调用，将导致 FreeRTOS 调度器崩溃或触发看门狗复位。
  */
 
 #ifndef SENSOR_STATE_H
@@ -24,359 +24,159 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-// Reuse CAN protocol parameter index definitions
-#include "../CAN/internal_can_protocol.h"
+// 复用 CAN 协议的参数索引宏定义
+#include "can_protocol.h"
 
-namespace Greenhouse {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // ============================================================================
-// Configuration Constants
+// 配置常量定义
 // ============================================================================
 
-/** Maximum number of nodes in the system (NodeID 0-15) */
-constexpr uint8_t MAX_NODES = 16;
+/** 系统中允许的最大节点数量 (NodeID: 0-15) */
+#define MAX_NODES 16
 
 /**
- * @brief Maximum parameter index value for array sizing
- * 
- * Parameter indices range from 0x00 to 0x51 (0x51 = INDEX_LIGHT_PWM_DUTY)
- * Using 0x60 (96) provides safe padding for future expansion while
- * keeping memory usage reasonable on ESP32-S3.
+ * @brief 用于数组大小分配的最大参数索引值
+ * * 现有的参数索引范围是从 0x00 到 0x51（0x51 = INDEX_LIGHT_PWM_DUTY）。
+ * 使用 0x60 (96) 可以为未来的功能扩展提供安全的内存填充边界，
+ * 同时在 ESP32-S3 上保持合理的内存使用率。
  */
-constexpr uint8_t MAX_PARAM_INDEX = 0x60;
+#define MAX_PARAM_INDEX 0x60
 
-/** Special value indicating invalid/uninitialized data */
-constexpr float INVALID_VALUE = -9999.0f;
+/** 表示数据无效、未初始化或传感器掉线的特殊值 */
+#define INVALID_VALUE (-9999.0f)
 
-/** Default node timeout in milliseconds (5 minutes) */
-constexpr uint32_t DEFAULT_NODE_TIMEOUT_MS = 5 * 60 * 1000;
+/** 默认的节点掉线超时时间（毫秒）。默认 5 分钟 (5 * 60 * 1000) */
+#define DEFAULT_NODE_TIMEOUT_MS 300000
 
 // ============================================================================
-// Data Structures
+// 数据结构定义
 // ============================================================================
 
 /**
- * @brief Digital twin data for a single node
- * 
- * This structure maintains both current sensor readings and target settings
- * for all parameters of a single greenhouse node (device).
- * 
- * Digital twin concept:
- * - current_values: Actual sensor readings from the physical device
- * - target_values: Desired settings sent by user or AI controller
+ * @brief 单个节点的数字孪生状态数据
+ * * 该结构体维护了单个温室节点（设备）的所有参数的当前物理读数和期望目标设定。
+ * * 数字孪生概念:
+ * - current_values: 物理设备当前真实反馈的传感器读数
+ * - target_values: 用户通过 UI 或 AI 控制器下发的期望设定值
  */
-struct NodeData {
-    bool is_online;                    ///< Whether the node is currently online
-    uint32_t last_seen_timestamp;      ///< Last communication timestamp (ms)
+typedef struct {
+    bool is_online;                 /**< 节点当前是否在线 */
+    uint32_t last_seen_timestamp;   /**< 最后一次成功通信的系统时间戳 (毫秒) */
     
     /**
-     * @brief Current sensor readings (actual values from physical device)
-     * 
-     * Array indexed by parameter index (0x00 to MAX_PARAM_INDEX-1).
-     * Values are stored as floats for easy processing by business logic.
-     * Switch values are stored as 0.0f (OFF) or 1.0f (ON).
-     * 
-     * @note Uses INVALID_VALUE for uninitialized/unavailable parameters.
+     * @brief 当前传感器读数 (物理设备的实际值)
+     * * 数组通过参数索引 (0x00 到 MAX_PARAM_INDEX-1) 进行访问。
+     * 为了方便业务逻辑层处理，所有值均统一存储为 float 浮点数。
+     * 开关量状态存储为 0.0f (OFF) 或 1.0f (ON)。
+     * * @note 未初始化或当前不可用的参数其值为 INVALID_VALUE。
      */
     float current_values[MAX_PARAM_INDEX];
     
     /**
-     * @brief Target settings (desired values set by user/AI)
-     * 
-     * Array indexed by parameter index (0x00 to MAX_PARAM_INDEX-1).
-     * These represent the desired state that the system should achieve.
-     * 
-     * @note Uses INVALID_VALUE for parameters without target settings.
+     * @brief 目标设定值 (用户/AI 期望达到的值)
+     * * 数组通过参数索引 (0x00 到 MAX_PARAM_INDEX-1) 进行访问。
+     * 代表系统应当努力调节达到的目标状态。
+     * * @note 没有目标设定的参数其值为 INVALID_VALUE。
      */
     float target_values[MAX_PARAM_INDEX];
-    
-    /**
-     * @brief Default constructor initializes all values to invalid
-     */
-    NodeData() : is_online(false), last_seen_timestamp(0) {
-        for (uint16_t i = 0; i < MAX_PARAM_INDEX; i++) {
-            current_values[i] = INVALID_VALUE;
-            target_values[i] = INVALID_VALUE;
-        }
-    }
-};
+} NodeData;
 
 // ============================================================================
-// SensorState Class
+// 生命周期管理 API
 // ============================================================================
 
 /**
- * @class SensorState
- * @brief Digital twin service layer for smart greenhouse system
- * 
- * This class implements the middleware service layer that maintains a complete
- * digital twin of the greenhouse system. It stores both current sensor readings
- * and target settings for all nodes, providing a clean API for upper layers.
- * 
- * Key responsibilities:
- * 1. Ingest data from CAN protocol layer (current readings and target acknowledgments)
- * 2. Maintain node online/offline status
- * 3. Provide read-only access to current and target values
- * 4. Support error detection (deviations between current and target)
- * 
- * Design principles:
- * - No dynamic memory allocation (fixed arrays)
- * - Simple, fast access patterns
- * - Separation of concerns (only data storage, no business logic)
- * - Thread-safe for single-threaded operation
+ * @brief 初始化传感器状态模块
+ * * 创建内部的 FreeRTOS 互斥锁，并将所有节点的数据格式化为 INVALID_VALUE。
+ * @note 必须在 FreeRTOS 调度器启动前或在系统初始化早期调用此函数！
  */
-class SensorState {
-private:
-    /** Array of node data for all possible nodes (0-15) */
-    NodeData nodes_[MAX_NODES];
-    
-    /** Current system timestamp (ms) - should be updated regularly */
-    uint32_t current_timestamp_;
-    
-    /** Node timeout threshold (ms) */
-    uint32_t node_timeout_ms_;
-    
-    /**
-     * @brief Validate node ID
-     * 
-     * @param node_id Node ID to validate
-     * @return true Node ID is valid (0-15)
-     * @return false Node ID is invalid
-     */
-    bool isValidNodeId(uint8_t node_id) const {
-        return node_id < MAX_NODES;
-    }
-    
-    /**
-     * @brief Validate parameter index
-     * 
-     * @param param_index Parameter index to validate
-     * @return true Parameter index is valid (0x00 to MAX_PARAM_INDEX-1)
-     * @return false Parameter index is invalid
-     */
-    bool isValidParamIndex(uint8_t param_index) const {
-        return param_index < MAX_PARAM_INDEX;
-    }
-    
-public:
-    /**
-     * @brief Default constructor
-     * 
-     * @param timeout_ms Node timeout in milliseconds (default: 5 minutes)
-     */
-    explicit SensorState(uint32_t timeout_ms = DEFAULT_NODE_TIMEOUT_MS);
-    
-    /**
-     * @brief Destructor
-     */
-    ~SensorState() = default;
-    
-    // ========================================================================
-    // Data Ingestion API (from CAN Protocol Layer)
-    // ========================================================================
-    
-    /**
-     * @brief Update node state with new data from CAN protocol layer
-     * 
-     * This method is called when the CAN protocol layer parses a valid
-     * CAN message. It updates either current sensor readings or target
-     * settings based on the message type.
-     * 
-     * @param node_id Node ID (0-15) that sent the data
-     * @param param_index Parameter index (e.g., 0x30 for temperature)
-     * @param value Physical value as float (already scaled)
-     * @param is_target true: This is a target setting acknowledgment from node
-     *                  false: This is a current sensor reading from node
-     * 
-     * @note The value should already be converted to physical units (e.g., °C)
-     *       by the CAN protocol layer before calling this method.
-     * 
-     * @return true Update successful
-     * @return false Update failed (invalid node_id or param_index)
-     */
-    bool updateState(uint8_t node_id, uint8_t param_index, float value, bool is_target);
-    
-    /**
-     * @brief Update current system timestamp
-     * 
-     * This should be called regularly (e.g., from main loop) to keep
-     * node online/offline detection accurate.
-     * 
-     * @param timestamp Current timestamp in milliseconds
-     */
-    void updateTimestamp(uint32_t timestamp) {
-        current_timestamp_ = timestamp;
-    }
-    
-    // ========================================================================
-    // Node Management API
-    // ========================================================================
-    
-    /**
-     * @brief Mark a node as online (received communication)
-     * 
-     * @param node_id Node ID to mark as online (0-15)
-     * @return true Success
-     * @return false Invalid node ID
-     */
-    bool markNodeOnline(uint8_t node_id);
-    
-    /**
-     * @brief Check if a node is currently online
-     * 
-     * A node is considered online if it has communicated within the
-     * configured timeout period.
-     * 
-     * @param node_id Node ID to check (0-15)
-     * @return true Node is online
-     * @return false Node is offline or invalid node ID
-     */
-    bool isNodeOnline(uint8_t node_id) const;
-    
-    /**
-     * @brief Get the last seen timestamp for a node
-     * 
-     * @param node_id Node ID (0-15)
-     * @return uint32_t Last seen timestamp in milliseconds, 0 if invalid node
-     */
-    uint32_t getNodeLastSeen(uint8_t node_id) const;
-    
-    /**
-     * @brief Set node timeout threshold
-     * 
-     * @param timeout_ms Timeout in milliseconds
-     */
-    void setNodeTimeout(uint32_t timeout_ms) {
-        node_timeout_ms_ = timeout_ms;
-    }
-    
-    /**
-     * @brief Get node timeout threshold
-     * 
-     * @return uint32_t Timeout in milliseconds
-     */
-    uint32_t getNodeTimeout() const {
-        return node_timeout_ms_;
-    }
-    
-    // ========================================================================
-    // Data Access API (for JSON/AI Logic Layer)
-    // ========================================================================
-    
-    /**
-     * @brief Get current sensor value for a node and parameter
-     * 
-     * @param node_id Node ID (0-15)
-     * @param param_index Parameter index (e.g., 0x30 for temperature)
-     * @return float Current sensor value, or INVALID_VALUE if unavailable/invalid
-     */
-    float getCurrentValue(uint8_t node_id, uint8_t param_index) const;
-    
-    /**
-     * @brief Get target setting value for a node and parameter
-     * 
-     * @param node_id Node ID (0-15)
-     * @param param_index Parameter index (e.g., 0x30 for temperature)
-     * @return float Target setting value, or INVALID_VALUE if unavailable/invalid
-     */
-    float getTargetValue(uint8_t node_id, uint8_t param_index) const;
-    
-    /**
-     * @brief Get direct access to node data (for advanced use cases)
-     * 
-     * @param node_id Node ID (0-15)
-     * @return const NodeData* Pointer to node data, or nullptr if invalid node ID
-     */
-    const NodeData* getNodeData(uint8_t node_id) const;
-    
-    /**
-     * @brief Check if a current value is valid (not INVALID_VALUE)
-     * 
-     * @param node_id Node ID (0-15)
-     * @param param_index Parameter index
-     * @return true Value is valid
-     * @return false Value is invalid/unavailable
-     */
-    bool hasCurrentValue(uint8_t node_id, uint8_t param_index) const;
-    
-    /**
-     * @brief Check if a target value is valid (not INVALID_VALUE)
-     * 
-     * @param node_id Node ID (0-15)
-     * @param param_index Parameter index
-     * @return true Value is valid
-     * @return false Value is invalid/unavailable
-     */
-    bool hasTargetValue(uint8_t node_id, uint8_t param_index) const;
-    
-    // ========================================================================
-    // Business Logic Helper API
-    // ========================================================================
-    
-    /**
-     * @brief Check if a node has errors
-     * 
-     * A node is considered to have errors if:
-     * 1. It's offline (no recent communication), OR
-     * 2. Any critical parameter has excessive deviation between current and target
-     * 
-     * @param node_id Node ID to check (0-15)
-     * @return true Node has errors
-     * @return false Node is operating normally
-     */
-    bool hasError(uint8_t node_id) const;
-    
-    /**
-     * @brief Check if a specific parameter has excessive deviation
-     * 
-     * @param node_id Node ID (0-15)
-     * @param param_index Parameter index
-     * @param max_deviation Maximum allowed deviation
-     * @return true Deviation exceeds maximum allowed
-     * @return false Deviation is within limits or data unavailable
-     */
-    bool hasExcessiveDeviation(uint8_t node_id, uint8_t param_index, float max_deviation) const;
-    
-    /**
-     * @brief Reset all data for a specific node
-     * 
-     * @param node_id Node ID to reset (0-15)
-     * @return true Success
-     * @return false Invalid node ID
-     */
-    bool resetNode(uint8_t node_id);
-    
-    /**
-     * @brief Reset all nodes (factory reset)
-     */
-    void resetAll();
-    
-    // ========================================================================
-    // Diagnostic and Debug API
-    // ========================================================================
-    
-    /**
-     * @brief Get number of online nodes
-     * 
-     * @return uint8_t Count of nodes currently online
-     */
-    uint8_t getOnlineNodeCount() const;
-    
-    /**
-     * @brief Get total number of valid current readings across all nodes
-     * 
-     * @return uint16_t Count of valid current readings
-     */
-    uint16_t getValidCurrentReadingCount() const;
-    
-    /**
-     * @brief Get total number of valid target settings across all nodes
-     * 
-     * @return uint16_t Count of valid target settings
-     */
-    uint16_t getValidTargetSettingCount() const;
-};
+void sensor_state_init(void);
 
-} // namespace Greenhouse
+// ============================================================================
+// 数据写入 API (供 CAN 协议层/数据接收 Task 调用)
+// ============================================================================
+
+/**
+ * @brief 更新节点的当前传感器读数
+ * * 当 CAN 接收任务解析到有效的传感器上报报文时调用此函数。
+ * 内部会自动获取互斥锁，并更新节点的在线状态和时间戳。
+ * * @param node_id 节点 ID (0-15)
+ * @param param_index 参数索引 (例如 0x30 表示温度)
+ * @param value 已转换为物理单位的浮点数值 (如 °C, %)
+ * @return true 更新成功
+ * @return false 更新失败 (非法的 node_id 或 param_index)
+ */
+bool sensor_state_update_current(uint8_t node_id, uint8_t param_index, float value);
+
+/**
+ * @brief 更新节点的目标设定值
+ * * 当 CAN 接收任务收到节点对设定指令的 ACK 确认时调用。
+ * * @param node_id 节点 ID (0-15)
+ * @param param_index 参数索引
+ * @param value 目标设定的浮点数值
+ * @return true 更新成功
+ * @return false 更新失败
+ */
+bool sensor_state_update_target(uint8_t node_id, uint8_t param_index, float value);
+
+/**
+ * @brief 仅将节点标记为在线并刷新时间戳 (心跳包处理)
+ * * @param node_id 节点 ID (0-15)
+ * @return true 成功
+ * @return false 非法的节点 ID
+ */
+bool sensor_state_mark_online(uint8_t node_id);
+
+// ============================================================================
+// 数据读取 API (供 LVGL 渲染 Task 或业务逻辑层调用)
+// ============================================================================
+
+/**
+ * @brief [核心优化] 获取整个节点数据的完整快照 (专为 LVGL 设计)
+ * * 此函数会一次性获取互斥锁，将指定节点的所有状态 (NodeData) 
+ * 内存拷贝 (memcpy) 到传入的结构体指针中，然后立即释放锁。
+ * * @note LVGL 渲染 UI 时，强烈建议使用此函数。它可以防止在渲染多个参数（如温湿度）
+ * 的过程中，底层 CAN 任务更新了数据导致的“UI 撕裂 (Data Tearing)”问题。
+ * * @param node_id 要获取的节点 ID (0-15)
+ * @param out_data 指向用户分配的 NodeData 结构体的指针，用于接收拷贝数据
+ * @return true 拷贝成功
+ * @return false 失败 (非法的节点 ID，或 out_data 为空指针)
+ */
+bool sensor_state_get_node_snapshot(uint8_t node_id, NodeData* out_data);
+
+/**
+ * @brief 获取单个参数的当前读数 (单点读取)
+ * * 内部包含互斥锁保护。适用于只关心某一个特定参数的简单逻辑判定。
+ * * @param node_id 节点 ID (0-15)
+ * @param param_index 参数索引
+ * @return float 传感器读数；如果节点非法或参数不可用，返回 INVALID_VALUE
+ */
+float sensor_state_get_current(uint8_t node_id, uint8_t param_index);
+
+/**
+ * @brief 获取单个参数的目标设定值 (单点读取)
+ * * @param node_id 节点 ID (0-15)
+ * @param param_index 参数索引
+ * @return float 目标设定值；如果节点非法或未设置，返回 INVALID_VALUE
+ */
+float sensor_state_get_target(uint8_t node_id, uint8_t param_index);
+
+/**
+ * @brief 检查指定节点当前是否在线
+ * * 基于内部记录的时间戳与 FreeRTOS 的当前系统滴答(Tick)进行比对，
+ * 如果超过 DEFAULT_NODE_TIMEOUT_MS 则判定为离线。
+ * * @param node_id 节点 ID (0-15)
+ * @return true 节点在线 (未超时)
+ * @return false 节点离线或非法 ID
+ */
+bool sensor_state_is_online(uint8_t node_id);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SENSOR_STATE_H

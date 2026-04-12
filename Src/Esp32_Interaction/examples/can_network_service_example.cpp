@@ -16,9 +16,9 @@
  */
 
 #include <Arduino.h>
-#include "../src/Service/CanNetworkService/can_network_service.h"
-#include "../src/Service/SensorState/sensor_state.h"
-#include "../src/Config/global_config.h"
+#include "can_network_service.h"
+#include "sensor_state.h"
+#include "global_config.h"
 
 // Create SensorState instance (digital twin)
 Greenhouse::SensorState sensorState;

@@ -4,10 +4,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "../../ECUAL/INMP441/inmp441_driver.h"
-#include "../../ECUAL/MAX98357AETE/max98357a_driver.h"
-#include "../BaiduApi/baidu_api.h"
-#include "../DeepSeekApi/deepseek_api.h" // 🚀 引入 DeepSeek 大脑
+#include "inmp441_driver.h"
+#include "max98357a_driver.h"
+#include "baidu_api.h"
+#include "deepseek_api.h" // 🚀 引入 DeepSeek 大脑
 
 enum class VoiceState {
     WAITING,

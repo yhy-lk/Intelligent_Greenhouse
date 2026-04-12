@@ -1,39 +1,42 @@
 #include <Arduino.h>
 #include <WiFi.h>
-#include "Config/secrets.h"
-#include "Service/VoiceAssistant/voice_assistant_service.h"
+#include "secrets.h"
+#include "voice_assistant_service.h"
+#include "esp_log.h" // 引入ESP-IDF日志宏
+
+// 定义当前文件的日志标签
+static const char *TAG = "MAIN";
 
 // 实例化语音助手服务
 VoiceAssistantService voiceAssistant;
 
 void setupNetwork() {
-    Serial.print("[Main] Connecting to Wi-Fi");
+    ESP_LOGI(TAG, "Connecting to Wi-Fi...");
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
+        vTaskDelay(pdMS_TO_TICKS(500));
+        ESP_LOGD(TAG, "Waiting for Wi-Fi connection..."); // 避免使用点号刷屏
     }
-    Serial.println("\n[Main] Wi-Fi Connected!");
+    ESP_LOGI(TAG, "Wi-Fi Connected!");
 }
 
 void setup() {
-    delay(3000);
-    Serial.begin(115200);
-    Serial.println("\n--- ESP32-S3 Smart Hub Booting ---");
+    vTaskDelay(pdMS_TO_TICKS(3000));
+    ESP_LOGI(TAG, "--- ESP32-S3 Smart Hub Booting ---");
 
     // 1. 连接基础网络
     setupNetwork();
 
     // 2. 初始化核心服务
     if (!voiceAssistant.init()) {
-        Serial.println("[Main] Critical Error: Voice Assistant failed to init.");
-        while (true) delay(1000); // 死机挂起
+        ESP_LOGE(TAG, "Critical Error: Voice Assistant failed to init.");
+        while (true) vTaskDelay(pdMS_TO_TICKS(1000)); // 死机挂起，替换为 vTaskDelay
     }
 
     // 3. 启动后台 RTOS 任务
     voiceAssistant.start_task();
 
-    Serial.println("--- Boot Complete. System Running! ---");
+    ESP_LOGI(TAG, "--- Boot Complete. System Running! ---");
 }
 
 void loop() {

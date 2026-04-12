@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <string>
 #include <vector>
-#include "../Protocol/NetworkService/http_client.h" 
+#include "http_client.h"
 
 // 配置结构体
 struct DeepSeekConfig {

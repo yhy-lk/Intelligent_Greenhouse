@@ -1,10 +1,13 @@
+// display_hal.cpp - 显示硬件抽象层实现
+
+#include "global_config.h"   // 必须包含全局配置头文件
 #include "display_hal.h"
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
 #include <lvgl.h>
 
 // ==========================================
-// 1. 硬件配置 (我们之前跑通的 LGFX 完整类)
+// 1. 硬件配置 (通过全局宏填入)
 // ==========================================
 class LGFX : public lgfx::LGFX_Device {
   lgfx::Panel_ILI9341   _panel_instance;
@@ -16,28 +19,35 @@ public:
   LGFX(void) {
     {
       auto cfg = _bus_instance.config();
-      cfg.port = 0;              
-      cfg.freq_write = 20000000; 
-      cfg.pin_wr = 12;           
-      cfg.pin_rd = -1;           
-      cfg.pin_rs = 13;           
-      cfg.pin_d0 = 4; cfg.pin_d1 = 5; cfg.pin_d2 = 6; cfg.pin_d3 = 7;
-      cfg.pin_d4 = 8; cfg.pin_d5 = 9; cfg.pin_d6 = 10; cfg.pin_d7 = 11;
+      cfg.port = DISPLAY_BUS_PORT;              
+      cfg.freq_write = DISPLAY_FREQUENCY_WRITE; 
+      cfg.pin_wr = DISPLAY_PIN_WR;           
+      cfg.pin_rd = DISPLAY_PIN_RD;           
+      cfg.pin_rs = DISPLAY_PIN_RS;           
+      cfg.pin_d0 = DISPLAY_PIN_D0; 
+      cfg.pin_d1 = DISPLAY_PIN_D1; 
+      cfg.pin_d2 = DISPLAY_PIN_D2; 
+      cfg.pin_d3 = DISPLAY_PIN_D3;
+      cfg.pin_d4 = DISPLAY_PIN_D4; 
+      cfg.pin_d5 = DISPLAY_PIN_D5; 
+      cfg.pin_d6 = DISPLAY_PIN_D6; 
+      cfg.pin_d7 = DISPLAY_PIN_D7;
       _bus_instance.config(cfg);
       _panel_instance.setBus(&_bus_instance);
     }
     {
       auto cfg = _panel_instance.config();
-      cfg.pin_cs   = 14;         
-      cfg.pin_rst  = 15;         
-      cfg.pin_busy = -1;         
-      cfg.panel_width      = 240;
-      cfg.panel_height     = 320;
-      cfg.offset_x         = 0;
-      cfg.offset_y         = 0;
-      cfg.offset_rotation  = 0;
-      cfg.dummy_read_pixel = 8;
-      cfg.dummy_read_bits  = 1;
+      cfg.pin_cs   = DISPLAY_PIN_CS;         
+      cfg.pin_rst  = DISPLAY_PIN_RST;        
+      cfg.pin_busy = DISPLAY_PIN_BUSY;         
+      cfg.panel_width      = DISPLAY_PANEL_WIDTH;
+      cfg.panel_height     = DISPLAY_PANEL_HEIGHT;
+      cfg.offset_x         = DISPLAY_OFFSET_X;
+      cfg.offset_y         = DISPLAY_OFFSET_Y;
+      cfg.offset_rotation  = DISPLAY_OFFSET_ROTATION;
+      cfg.dummy_read_pixel = DISPLAY_DUMMY_READ_PIXEL;
+      cfg.dummy_read_bits  = DISPLAY_DUMMY_READ_BITS;
+      // 以下为驱动核心逻辑状态，通常不需要宏定义
       cfg.readable         = false; 
       cfg.invert           = false; 
       cfg.rgb_order        = false; 
@@ -47,28 +57,28 @@ public:
     }
     {
       auto cfg = _light_instance.config();
-      cfg.pin_bl      = 16;      
-      cfg.invert      = false;   
-      cfg.freq        = 44100;   
-      cfg.pwm_channel = 7;       
+      cfg.pin_bl      = DISPLAY_PIN_BL;      
+      cfg.invert      = DISPLAY_LIGHT_INVERT;   
+      cfg.freq        = DISPLAY_BRIGHTNESS_FREQ;   
+      cfg.pwm_channel = DISPLAY_BRIGHTNESS_CHANNEL;       
       _light_instance.config(cfg);
       _panel_instance.setLight(&_light_instance);
     }
     {
       auto cfg = _touch_instance.config();
-      cfg.x_min      = 0;
-      cfg.x_max      = 239;
-      cfg.y_min      = 0;
-      cfg.y_max      = 319;
+      cfg.x_min      = DISPLAY_TOUCH_X_MIN;
+      cfg.x_max      = DISPLAY_TOUCH_X_MAX;
+      cfg.y_min      = DISPLAY_TOUCH_Y_MIN;
+      cfg.y_max      = DISPLAY_TOUCH_Y_MAX;
       cfg.bus_shared = false;    
-      cfg.offset_rotation = 0;   
-      cfg.spi_host = SPI2_HOST;  
-      cfg.freq     = 1000000;    
-      cfg.pin_sclk = 17;         
-      cfg.pin_cs   = 21;         
-      cfg.pin_miso = 18;  // 硬件修复
-      cfg.pin_mosi = 38;  // 硬件修复
-      cfg.pin_int  = 39;  // 硬件中断
+      cfg.offset_rotation = DISPLAY_OFFSET_ROTATION;   
+      cfg.spi_host = DISPLAY_TOUCH_SPI_HOST;  
+      cfg.freq     = DISPLAY_TOUCH_SPI_FREQ;    
+      cfg.pin_sclk = DISPLAY_TOUCH_SPI_SCLK;         
+      cfg.pin_cs   = DISPLAY_TOUCH_SPI_CS;         
+      cfg.pin_miso = DISPLAY_TOUCH_SPI_MISO;  
+      cfg.pin_mosi = DISPLAY_TOUCH_SPI_MOSI;  
+      cfg.pin_int  = DISPLAY_TOUCH_INT_PIN;  
       _touch_instance.config(cfg);
       _panel_instance.setTouch(&_touch_instance);
     }
@@ -120,16 +130,16 @@ uint32_t my_tick_get_cb(void) {
 // ==========================================
 void hal_display_init(void) {
     // 1. 防御性上拉
-    pinMode(18, INPUT_PULLUP);
-    pinMode(39, INPUT_PULLUP);
+    pinMode(DISPLAY_TOUCH_SPI_MISO, INPUT_PULLUP);
+    pinMode(DISPLAY_TOUCH_INT_PIN, INPUT_PULLUP);
 
     // 2. 初始化屏幕
     tft.init();
-    tft.setRotation(0); 
-    tft.setBrightness(128); 
+    tft.setRotation(DISPLAY_ROTATION); 
+    tft.setBrightness(DISPLAY_BRIGHTNESS_DEFAULT); 
 
-    // 3. 注入你的专属校准矩阵
-    uint16_t calData[8] = { 295, 3583, 241, 147, 3800, 3584, 3720, 141 };
+    // 3. 注入校准矩阵
+    uint16_t calData[8] = DISPLAY_TOUCH_CAL_DATA;
     tft.setTouchCalibrate(calData);
 
     // 4. 初始化 LVGL 核心
@@ -137,9 +147,9 @@ void hal_display_init(void) {
     lv_tick_set_cb(my_tick_get_cb); // 注册时钟回调
 
     // 5. 注册显示设备 (LVGL 9.x API)
-    lv_display_t * disp = lv_display_create(240, 320);
-    // 开辟绘制缓冲区 (推荐大小至少为屏幕像素的 1/10，RGB565每个像素占2字节)
-    static uint8_t draw_buf[240 * 32 * 2]; 
+    lv_display_t * disp = lv_display_create(DISPLAY_PANEL_WIDTH, DISPLAY_PANEL_HEIGHT);
+    // 开辟绘制缓冲区
+    static uint8_t draw_buf[DISPLAY_DRAW_BUF_SIZE]; 
     lv_display_set_buffers(disp, draw_buf, NULL, sizeof(draw_buf), LV_DISPLAY_RENDER_MODE_PARTIAL);
     lv_display_set_flush_cb(disp, my_disp_flush);
 

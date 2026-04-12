@@ -4,19 +4,18 @@
 #include <os_service.h>
 
 DeepSeekApi deepseek;
-using namespace OsService;
 
 void setup() {
 
     Serial.begin();
 
-    safe_delay_ms(5000); // 等待串口稳定
+    vTaskDelay(pdMS_TO_TICKS(5000)); // 等待串口稳定
 
-    safe_printf("Starting DeepSeekApi test...\n");
+    ESP_LOGI("DEEPSEEK", "Starting DeepSeekApi test...\n");
 
-    std::string answer = deepseek.ask_question("Hello, DeepSeek!");
+    std::string answer = deepseek.ask("Hello, DeepSeek!");
 
-    safe_printf("DeepSeek answer: %s\n", answer.c_str());
+    ESP_LOGI("DEEPSEEK", "DeepSeek answer: %s\n", answer.c_str());
 }
 
 void loop() {

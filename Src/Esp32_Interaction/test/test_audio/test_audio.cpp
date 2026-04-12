@@ -2,9 +2,9 @@
 // 将此逻辑放在您的main.cpp或专用服务中。
 
 #include <Arduino.h>
-#include "MCAL/i2s_hal.h"
-#include "ECUAL/INMP441/inmp441_driver.h"
-#include "ECUAL/MAX98357AETE/max98357a_driver.h"
+#include "i2s_hal.h"
+#include "inmp441_driver.h"
+#include "max98357a_driver.h"
 
 // 实例化驱动程序
 Inmp441Driver mic;

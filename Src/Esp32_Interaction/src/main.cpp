@@ -1,48 +1,41 @@
 #include <Arduino.h>
-#include "display_hal.h"
-#include "gui_manager.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
+#include "esp_log.h"
 
-// 1. 定义一个全局队列句柄 (对应 custom.c 里的 extern)
-QueueHandle_t slider_queue = NULL;
+// 引入应用层
+#include "App/LVGL/lvgl_app.h"
+#include "App/CAN/can_app.h"
 
-// 2. 定义后端专用的业务处理任务 (纯后台运算，完全不影响 UI 帧率)
-void Backend_Print_Task(void *pvParameters) {
-    int received_value = 0;
-    
-    while(1) {
-        // 死等队列里的数据。portMAX_DELAY 意味着没数据时任务进入阻塞态，绝对不占 CPU
-        if (xQueueReceive(slider_queue, &received_value, portMAX_DELAY) == pdTRUE) {
-            // 这里就是真正的原子性操作边界！数据已经安全取到了后端！
-            Serial.printf("[Backend Task] 滑块最新值: %d\n", received_value);
-            
-            // 你以后可以在这里调用你的 Service 层，比如：
-            // can_network_send(received_value);
-            // set_greenhouse_temperature(received_value);
-        }
-    }
-}
+static const char* TAG = "MAIN";
+
+// 如果你的 custom.c 还需要直接访问该句柄，
+// 可以在这里声明，或者在 lvgl_app.cpp 中通过外部链接导出
+extern QueueHandle_t slider_queue; 
 
 void setup() {
-    Serial.begin(9600);
+    // 虽然改用了 ESP_LOG，但在某些 ESP32 环境下仍需 Serial.begin 初始化串口底层
+    Serial.begin(115200); 
     delay(1000);
-    Serial.println("System Booting...");
+    
+    ESP_LOGI(TAG, "System Booting...");
 
-    // 创建一个深度为 10，每个元素为 int 大小的队列
-    slider_queue = xQueueCreate(10, sizeof(int));
+    // 1. 初始化 CAN 应用层 (使用之前定义的引脚和波特率)
+    if (!App::CAN::init()) {
+        ESP_LOGE(TAG, "CAN 模块启动失败");
+    }
 
-    // 创建一个独立的后台任务来处理数据 (分配 2048 字节栈，优先级设为 1)
-    xTaskCreate(Backend_Print_Task, "BackendTask", 2048, NULL, 1, NULL);
+    // 2. 初始化 LVGL 应用层 (包含 UI 任务和后台任务)
+    if (!App::LVGL::init()) {
+        ESP_LOGE(TAG, "LVGL 模块启动失败");
+    }
 
-    // 初始化硬件与 UI
-    hal_display_init();
-    gui_init();
+    // 将全局队列指针指向封装好的句柄（如果 GUI 回调通过 extern 使用它）
+    slider_queue = App::LVGL::get_slider_queue();
+
+    ESP_LOGI(TAG, "所有模块初始化尝试完成");
 }
 
 void loop() {
-    // 前端 UI 刷新仍然在主循环（也就是 FreeRTOS 的主任务）中无脑跑
-    hal_display_routine();
-    delay(5); 
+    // 所有的逻辑都在 FreeRTOS 任务中了
+    // loop 任务现在可以作为监控任务，或者干脆空转/删除
+    vTaskDelay(pdMS_TO_TICKS(1000));
 }
