@@ -14,19 +14,7 @@
 #include <stdio.h>
 #include "lvgl.h"
 #include "custom.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/queue.h"
 
-// 引入外部定义的队列句柄（稍后我们在 main.cpp 中定义它）
-extern QueueHandle_t slider_queue;
-
-void custom_slider_event_send(int value) {
-    // 如果队列已经创建，就把数值用非阻塞的方式发进队列里
-    // 这里的 0 表示如果队列满了，不等待，直接丢弃（防止把 UI 卡死）
-    if (slider_queue != NULL) {
-        xQueueSend(slider_queue, &value, 0);
-    }
-}
 /*********************
  *      DEFINES
  *********************/
