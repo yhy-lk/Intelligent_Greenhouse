@@ -1,12 +1,4 @@
-/*
-* Copyright 2024 NXP
-* NXP Proprietary. This software is owned or controlled by NXP and may only be used strictly in
-* accordance with the applicable license terms. By expressly accepting such terms or by downloading, installing,
-* activating and/or otherwise using the software, you are agreeing that you have read, and that you agree to
-* comply with and are bound by, such license terms.  If you do not agree to be bound by the applicable license
-* terms, then you may not retain, install, activate or otherwise use the software.
-*/
-
+/* custom.h */
 #ifndef __CUSTOM_H_
 #define __CUSTOM_H_
 #ifdef __cplusplus
@@ -15,9 +7,19 @@ extern "C" {
 
 #include "gui_guider.h"
 
+// ==========================================
+// 针对 MCU 硬件环境包含所需的底层头文件
+// ==========================================
+#if !defined(_WIN32) && !defined(WIN32)
+    #include "can_protocol.h"  // 包含 can_service_send_control 和 CanParamIndex
+    #include "esp_log.h"       // 包含 ESP_LOGx 宏
+#endif
+
+// 你之前的自定义函数声明...
 void custom_init(lv_ui *ui);
+void custom_update_screen_overview(void);
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* EVENT_CB_H_ */
+#endif /* __CUSTOM_H_ */

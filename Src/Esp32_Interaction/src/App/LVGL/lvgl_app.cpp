@@ -5,14 +5,14 @@
 
 #include "lvgl_app.h"
 #include "esp_log.h"
+#include "custom.h"
 
 // 硬件与 GUI 依赖
 #include "display_hal.h"
 #include "gui_manager.h"
 #include "app_config.h" // 假设这里定义了任务优先级和栈大小
 
-// 全局队列句柄，供外部 (如 custom.c) 使用
-QueueHandle_t slider_queue = nullptr;
+
 
 
 namespace App {
@@ -30,13 +30,7 @@ static void lvgl_event_handler_task(void* pvParameters) {
     
     while (true) {
         // 阻塞式接收队列消息
-        if (xQueueReceive(slider_queue, &received_value, portMAX_DELAY) == pdTRUE) {
-            // 使用 ESP_LOGI 代替 Serial.printf
-            ESP_LOGI(TAG, "收到滑块最新值: %d", received_value);
-            
-            // 此处可扩展业务逻辑，例如：
-            // App::CAN::send_data(received_value);
-        }
+        // ...此处原本通过 slider_queue 接收消息的逻辑已移除...
     }
 }
 
@@ -47,6 +41,7 @@ static void lvgl_event_handler_task(void* pvParameters) {
 static void lvgl_update_task(void* pvParameters) {
     ESP_LOGI(TAG, "LVGL 刷新任务已启动");
     while (true) {
+        custom_update_screen_overview();
         hal_display_routine();
         vTaskDelay(pdMS_TO_TICKS(5)); // 对应原本 loop 中的 delay(5)
     }
@@ -55,12 +50,7 @@ static void lvgl_update_task(void* pvParameters) {
 bool init() {
     ESP_LOGI(TAG, "正在初始化 LVGL 应用层...");
 
-    // 1. 初始化队列 (深度 10)
-    slider_queue = xQueueCreate(10, sizeof(int));
-    if (slider_queue == nullptr) {
-        ESP_LOGE(TAG, "创建 UI 事件队列失败！");
-        return false;
-    }
+
 
     // 2. 初始化硬件与 GUI 管理器
     hal_display_init();
@@ -101,9 +91,7 @@ bool init() {
     return true;
 }
 
-QueueHandle_t get_slider_queue() {
-    return slider_queue;
-}
+
 
 } // namespace LVGL
 } // namespace App

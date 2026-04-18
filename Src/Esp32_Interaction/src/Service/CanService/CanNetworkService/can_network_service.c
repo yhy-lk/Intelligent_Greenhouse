@@ -24,6 +24,7 @@ static const char* TAG = "CAN_SVC";
 
 static bool s_is_initialized = false;
 static bool s_is_started = false;
+static bool s_recovery_in_progress = false;
 static CanConfig s_config;
 static CanMetrics s_metrics = {0};
 
@@ -56,23 +57,49 @@ static twai_timing_config_t get_timing_config(uint32_t baud_rate) {
 /**
  * @brief 尝试恢复处于 Bus-Off 状态的 CAN 总线
  */
-static void attempt_bus_recovery(void) {
-    ESP_LOGW(TAG, "尝试恢复 CAN 总线...");
-    if (s_is_started) {
-        twai_stop();
-        s_is_started = false;
+static void attempt_bus_recovery(twai_state_t state) {
+    if (state == TWAI_STATE_BUS_OFF) {
+        if (!s_recovery_in_progress) {
+            ESP_LOGW(TAG, "检测到 BUS_OFF，开始恢复流程...");
+            esp_err_t err = twai_initiate_recovery();
+            if (err == ESP_OK) {
+                s_recovery_in_progress = true;
+                xSemaphoreTake(s_mutex, portMAX_DELAY);
+                s_is_started = false;
+                xSemaphoreGive(s_mutex);
+                ESP_LOGI(TAG, "CAN 总线进入恢复中状态");
+            } else {
+                ESP_LOGE(TAG, "CAN 总线恢复失败: 0x%X", err);
+            }
+        }
+        return;
     }
-    
-    // 给硬件一点时间释放错误状态
-    vTaskDelay(pdMS_TO_TICKS(500));
-    
-    esp_err_t err = twai_start();
-    if (err == ESP_OK) {
-        s_is_started = true;
-        ESP_LOGI(TAG, "CAN 总线恢复成功");
-    } else {
-        ESP_LOGE(TAG, "CAN 总线恢复失败: 0x%X", err);
+
+    if (state == TWAI_STATE_STOPPED && s_recovery_in_progress) {
+        esp_err_t err = twai_start();
+        if (err == ESP_OK) {
+            xSemaphoreTake(s_mutex, portMAX_DELAY);
+            s_is_started = true;
+            xSemaphoreGive(s_mutex);
+            s_recovery_in_progress = false;
+            ESP_LOGI(TAG, "CAN 总线恢复成功");
+        } else {
+            ESP_LOGE(TAG, "CAN 总线恢复失败: 0x%X", err);
+        }
     }
+}
+
+/**
+ * @brief 仅判断驱动是否安装完成（用于 poll 任务保持运行）
+ */
+static bool can_service_driver_ready(void) {
+    bool init_state = false;
+    if (s_mutex) {
+        xSemaphoreTake(s_mutex, portMAX_DELAY);
+        init_state = s_is_initialized;
+        xSemaphoreGive(s_mutex);
+    }
+    return init_state;
 }
 
 /**
@@ -231,25 +258,29 @@ bool can_service_is_initialized(void) {
 // ============================================================================
 
 void can_service_poll(void) {
-    if (!can_service_is_initialized()) {
+    if (!can_service_driver_ready()) {
         return;
-    }
-
-    twai_message_t msg;
-    // 非阻塞轮询接收队列。如果队列中有数据，则快速处理完。
-    while (twai_receive(&msg, 0) == ESP_OK) {
-        process_received_message(&msg);
     }
 
     // 周期性检查硬件总线状态与异常
     twai_status_info_t status;
     if (twai_get_status_info(&status) == ESP_OK) {
+        if (status.state == TWAI_STATE_RUNNING) {
+            twai_message_t msg;
+            // 非阻塞轮询接收队列。如果队列中有数据，则快速处理完。
+            while (twai_receive(&msg, 0) == ESP_OK) {
+                process_received_message(&msg);
+            }
+        }
+
         if (status.state == TWAI_STATE_BUS_OFF) {
             xSemaphoreTake(s_mutex, portMAX_DELAY);
             s_metrics.bus_error_count++;
             xSemaphoreGive(s_mutex);
-            
-            attempt_bus_recovery();
+
+            attempt_bus_recovery(status.state);
+        } else if (status.state == TWAI_STATE_STOPPED || status.state == TWAI_STATE_RECOVERING) {
+            attempt_bus_recovery(status.state);
         }
     }
 }

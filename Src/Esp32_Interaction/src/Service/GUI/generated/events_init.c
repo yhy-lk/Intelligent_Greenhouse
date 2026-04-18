@@ -91,13 +91,13 @@ static void screen_overview_event_handler (lv_event_t *e)
         case LV_DIR_TOP:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_overview_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 100, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_overview_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 100, false, false);
             break;
         }
         case LV_DIR_LEFT:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_control, guider_ui.screen_control_del, &guider_ui.screen_overview_del, setup_scr_screen_control, LV_SCR_LOAD_ANIM_MOVE_LEFT, 300, 0, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_control, guider_ui.screen_control_del, &guider_ui.screen_overview_del, setup_scr_screen_control, LV_SCR_LOAD_ANIM_MOVE_LEFT, 300, 0, false, false);
             break;
         }
         default:
@@ -126,19 +126,19 @@ static void screen_control_event_handler (lv_event_t *e)
         case LV_DIR_TOP:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_control_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 200, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_control_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 200, false, false);
             break;
         }
         case LV_DIR_LEFT:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_trend, guider_ui.screen_trend_del, &guider_ui.screen_control_del, setup_scr_screen_trend, LV_SCR_LOAD_ANIM_MOVE_LEFT, 300, 0, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_trend, guider_ui.screen_trend_del, &guider_ui.screen_control_del, setup_scr_screen_trend, LV_SCR_LOAD_ANIM_MOVE_LEFT, 300, 0, false, false);
             break;
         }
         case LV_DIR_RIGHT:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_overview, guider_ui.screen_overview_del, &guider_ui.screen_control_del, setup_scr_screen_overview, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 300, 0, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_overview, guider_ui.screen_overview_del, &guider_ui.screen_control_del, setup_scr_screen_overview, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 300, 0, false, false);
             break;
         }
         default:
@@ -212,19 +212,19 @@ static void screen_trend_event_handler (lv_event_t *e)
         case LV_DIR_TOP:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_trend_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 200, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_trend_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 200, false, false);
             break;
         }
         case LV_DIR_LEFT:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_setting, guider_ui.screen_setting_del, &guider_ui.screen_trend_del, setup_scr_screen_setting, LV_SCR_LOAD_ANIM_OVER_LEFT, 200, 200, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_setting, guider_ui.screen_setting_del, &guider_ui.screen_trend_del, setup_scr_screen_setting, LV_SCR_LOAD_ANIM_OVER_LEFT, 200, 200, false, false);
             break;
         }
         case LV_DIR_RIGHT:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_control, guider_ui.screen_control_del, &guider_ui.screen_trend_del, setup_scr_screen_control, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 200, 200, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_control, guider_ui.screen_control_del, &guider_ui.screen_trend_del, setup_scr_screen_control, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 200, 200, false, false);
             break;
         }
         default:
@@ -253,13 +253,13 @@ static void screen_setting_event_handler (lv_event_t *e)
         case LV_DIR_TOP:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_setting_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 200, false, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_setting_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 200, false, false);
             break;
         }
         case LV_DIR_RIGHT:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_trend, guider_ui.screen_trend_del, &guider_ui.screen_setting_del, setup_scr_screen_trend, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 200, 200, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_trend, guider_ui.screen_trend_del, &guider_ui.screen_setting_del, setup_scr_screen_trend, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 200, 200, false, false);
             break;
         }
         default:
@@ -288,18 +288,58 @@ static void screen_manual_mode_event_handler (lv_event_t *e)
         case LV_DIR_RIGHT:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_control, guider_ui.screen_control_del, &guider_ui.screen_manual_mode_del, setup_scr_screen_control, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 200, 200, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_control, guider_ui.screen_control_del, &guider_ui.screen_manual_mode_del, setup_scr_screen_control, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 200, 200, false, false);
             break;
         }
         case LV_DIR_TOP:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_manual_mode_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 200, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_manual_mode_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 200, false, false);
             break;
         }
         default:
             break;
         }
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+static void screen_manual_mode_sw_awning_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_VALUE_CHANGED:
+    {
+        lv_obj_t * status_obj = lv_event_get_target(e);
+        int status = lv_obj_has_state(status_obj, LV_STATE_CHECKED) ? true : false;
+        /* 1. 获取触发事件的开关对象及其当前状态 */
+        lv_obj_t * sw_obj = lv_event_get_target(e);
+        bool is_on = lv_obj_has_state(sw_obj, LV_STATE_CHECKED);
+        float target_value = is_on ? 1.0f : 0.0f;
+
+        /* 2. 跨平台隔离逻辑 */
+#if defined(_WIN32) || defined(WIN32)
+        /* Windows 模拟器环境：LVGL 日志默认会打印到终端 */
+        LV_LOG_USER("[Simulator] Awning Switch Toggled: %s", is_on ? "ON" : "OFF");
+#else
+        #include "can_protocol.h"
+        /* 实际 MCU 硬件环境 */
+        uint8_t target_node_id = 1;
+
+        /* 假设 can_service_send_control 的声明你能通过某种方式（比如全局 extern 或者修改后的 custom.h）让 events_init.c 认识它 */
+        bool req_sent = can_service_send_control(target_node_id, PARAM_IDX_SUNSHADE_MOTOR, target_value);
+
+        if (!req_sent) {
+            /* 使用 LVGL 的错误日志宏 */
+            LV_LOG_ERROR("CUSTOM_UI: Failed to send Awning control command!");
+        } else {
+            /* 使用 LVGL 的用户级日志宏 (相当于 INFO) */
+            LV_LOG_USER("CUSTOM_UI: Awning control sent: %s", is_on ? "ON" : "OFF");
+        }
+#endif
         break;
     }
     default:
@@ -350,6 +390,7 @@ static void screen_manual_mode_slider_brightness_value_event_handler (lv_event_t
 void events_init_screen_manual_mode (lv_ui *ui)
 {
     lv_obj_add_event_cb(ui->screen_manual_mode, screen_manual_mode_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_manual_mode_sw_awning, screen_manual_mode_sw_awning_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_manual_mode_slider_ventilation_fan_speed, screen_manual_mode_slider_ventilation_fan_speed_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_manual_mode_slider_brightness_value, screen_manual_mode_slider_brightness_value_event_handler, LV_EVENT_ALL, ui);
 }
@@ -365,13 +406,13 @@ static void screen_auto_mode_event_handler (lv_event_t *e)
         case LV_DIR_RIGHT:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_control, guider_ui.screen_control_del, &guider_ui.screen_auto_mode_del, setup_scr_screen_control, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 200, 200, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_control, guider_ui.screen_control_del, &guider_ui.screen_auto_mode_del, setup_scr_screen_control, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 200, 200, false, false);
             break;
         }
         case LV_DIR_TOP:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_auto_mode_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 200, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_auto_mode_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 200, false, false);
             break;
         }
         default:
@@ -508,13 +549,13 @@ static void screen_ai_pilot_mode_event_handler (lv_event_t *e)
         case LV_DIR_RIGHT:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_control, guider_ui.screen_control_del, &guider_ui.screen_ai_pilot_mode_del, setup_scr_screen_control, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 200, 200, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_control, guider_ui.screen_control_del, &guider_ui.screen_ai_pilot_mode_del, setup_scr_screen_control, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 200, 200, false, false);
             break;
         }
         case LV_DIR_TOP:
         {
             lv_indev_wait_release(lv_indev_active());
-            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_ai_pilot_mode_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 200, true, true);
+            ui_load_scr_animation(&guider_ui, &guider_ui.screen_home, guider_ui.screen_home_del, &guider_ui.screen_ai_pilot_mode_del, setup_scr_screen_home, LV_SCR_LOAD_ANIM_FADE_ON, 200, 200, false, false);
             break;
         }
         default:

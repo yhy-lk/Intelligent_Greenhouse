@@ -62,7 +62,7 @@ use crate::domains::{
     can_rx, // 新增
     can_tx, // 新增
     ventilation_fan,
-    hw_test,
+    // hw_test,
 };
 
 mod shared;

@@ -5,6 +5,38 @@
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
 #include <lvgl.h>
+// ===== 新增: 引入 ESP 日志头文件 =====
+#include "esp_log.h"
+
+// ==========================================
+// 2. LVGL 对接回调函数
+// ==========================================
+
+// ===== 新增: LVGL 到 ESP_LOG 的重定向回调 =====
+void my_lvgl_log_cb(lv_log_level_t level, const char * buf) {
+    // 剔除 LVGL 默认自带的换行符，因为 ESP_LOG 会自己加换行
+    // (可选操作，取决于你希望日志看起来有多干净)
+    static const char * TAG = "LVGL";
+    
+    switch (level) {
+        case LV_LOG_LEVEL_ERROR:
+            ESP_LOGE(TAG, "%s", buf);
+            break;
+        case LV_LOG_LEVEL_WARN:
+            ESP_LOGW(TAG, "%s", buf);
+            break;
+        case LV_LOG_LEVEL_INFO:
+            ESP_LOGI(TAG, "%s", buf);
+            break;
+        case LV_LOG_LEVEL_TRACE:
+            ESP_LOGV(TAG, "%s", buf);
+            break;
+        case LV_LOG_LEVEL_USER:
+        default:
+            ESP_LOGI(TAG, "%s", buf);
+            break;
+    }
+}
 
 // ==========================================
 // 1. 硬件配置 (通过全局宏填入)
@@ -145,6 +177,9 @@ void hal_display_init(void) {
     // 4. 初始化 LVGL 核心
     lv_init();
     lv_tick_set_cb(my_tick_get_cb); // 注册时钟回调
+
+  // ===== 新增: 注册日志重定向回调 =====
+    lv_log_register_print_cb(my_lvgl_log_cb);
 
     // 5. 注册显示设备 (LVGL 9.x API)
     lv_display_t * disp = lv_display_create(DISPLAY_PANEL_WIDTH, DISPLAY_PANEL_HEIGHT);

@@ -2,8 +2,9 @@
  * @file can_app.cpp
  * @brief CAN 应用程序层实现
  */
-
+#undef LOG_LOCAL_LEVEL
 #include "can_app.h"
+#define LOG_LOCAL_LEVEL ESP_LOG_INFO
 #include "esp_log.h"
 
 // FreeRTOS

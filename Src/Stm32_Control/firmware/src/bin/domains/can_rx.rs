@@ -10,7 +10,7 @@ use embassy_stm32::can::{Id, CanRx};
 /// 负责监听总线下发的 Write (0x2) 指令，并将其映射为内部控制目标写入全局状态单例
 #[embassy_executor::task]
 pub async fn can_rx_task(mut rx: CanRx<'static>) { // 修复 1：移除外设类型泛型参数
-    trace!("Starting CAN RX task");
+    info!("Starting CAN RX task");
 
     loop {
         match rx.read().await {
@@ -28,6 +28,7 @@ pub async fn can_rx_task(mut rx: CanRx<'static>) { // 修复 1：移除外设类
 
                 // 节点地址路由：忽略发给其他从机的单播帧
                 if target_node != NODE_ID && target_node != 0x00 {
+                    trace!("CAN RX: dropped by node route, target={=u16}, local={=u16}", target_node, NODE_ID);
                     continue;
                 }
 
@@ -38,11 +39,20 @@ pub async fn can_rx_task(mut rx: CanRx<'static>) { // 修复 1：移除外设类
 
                 // 功能码路由：处理下发指令 (Write) 和时钟同步 (TimeSync)
                 if func_code != FuncCode::Write && func_code != FuncCode::TimeSync {
+                    trace!("CAN RX: dropped by func route, func={=u8}", func_code as u8);
                     continue;
                 }
 
                 // 载荷解析
                 if let Some((index, value_u32)) = parse_rx_payload(&frame) {
+                    info!(
+                        "CAN RX frame accepted: id=0x{:03X}, node={=u16}, func={=u8}, index=0x{:02X}, value={} ",
+                        std_id.as_raw(),
+                        target_node,
+                        func_code as u8,
+                        index,
+                        value_u32
+                    );
                     
                     // 进入局部临界区更新状态
                     {
@@ -122,7 +132,7 @@ pub async fn can_rx_task(mut rx: CanRx<'static>) { // 修复 1：移除外设类
                         }
                     } 
                     
-                    trace!("CAN RX: Parsed Write Cmd [Index: {=u8}, Raw Val: {}]", index, value_u32);
+                    info!("CAN RX: state updated [index={=u8}, raw={}]", index, value_u32);
                 }
             }
             Err(e) => {

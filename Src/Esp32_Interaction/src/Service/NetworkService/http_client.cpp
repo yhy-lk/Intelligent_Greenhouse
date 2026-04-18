@@ -2,9 +2,13 @@
 #include <algorithm>
 #include <string>
 #include "utils.h"
+#include "esp_log.h" // 引入 ESP-IDF 日志库
 
 // 假设你的 utils 里有 trim, startsWith, indexOf。如果没有，请确保它们能正常工作。
 using namespace Utils;
+
+// 定义日志标签
+static const char *TAG = "MyHttp";
 
 HttpClient::HttpClient() 
     : timeout(30000), debug_mode(true), insecure_mode(true), last_status_code(0) {
@@ -47,16 +51,16 @@ std::string HttpClient::post(const std::string& host, uint16_t port, const std::
     last_status_code = 0;
     
     if (debug_mode) {
-        Serial.printf("[MyHttp] Connecting to %s:%d...\n", host.c_str(), port);
+        ESP_LOGD(TAG, "Connecting to %s:%d...", host.c_str(), port);
     }
     
     if (!client.connect(host.c_str(), port)) {
         last_error = "Connection failed";
-        if (debug_mode) Serial.println("[MyHttp] Connection to server failed!");
+        if (debug_mode) ESP_LOGE(TAG, "Connection to server failed!");
         return "Error: " + last_error;
     }
     
-    if (debug_mode) Serial.println("[MyHttp] Connected! Sending request...");
+    if (debug_mode) ESP_LOGD(TAG, "Connected! Sending request...");
     
     // 构建请求
     std::string request = "POST " + path + " HTTP/1.1\r\n";
@@ -88,7 +92,7 @@ std::string HttpClient::post(const std::string& host, uint16_t port, const std::
     
     // 读取状态行
     std::string status_line = client.readStringUntil('\n').c_str();
-    if (debug_mode) Serial.printf("[MyHttp] Status: %s\n", status_line.c_str());
+    if (debug_mode) ESP_LOGD(TAG, "Status: %s", status_line.c_str());
     
     // 解析状态码
     if (startsWith(status_line, "HTTP/")) {
@@ -120,7 +124,7 @@ std::string HttpClient::post(const std::string& host, uint16_t port, const std::
     }
     
     if (debug_mode) {
-        Serial.printf("[MyHttp] Is Chunked: %s, Content-Length: %d\n", is_chunked ? "Yes" : "No", content_length);
+        ESP_LOGD(TAG, "Is Chunked: %s, Content-Length: %d", is_chunked ? "Yes" : "No", content_length);
     }
 
     std::string response;
@@ -172,7 +176,7 @@ std::string HttpClient::read_chunked_response(WiFiClientSecure& client, unsigned
         if (client.available()) client.readStringUntil('\n');
         
         if (millis() - start_time > timeout_ms) {
-            Serial.println("[MyHttp] Chunked read timeout!");
+            ESP_LOGE(TAG, "Chunked read timeout!");
             break;
         }
     }
@@ -201,7 +205,7 @@ std::string HttpClient::read_content_length_response(WiFiClientSecure& client, i
             }
         }
         if (millis() - start_time > timeout_ms) {
-            Serial.println("[MyHttp] Read timeout!");
+            ESP_LOGE(TAG, "Read timeout!");
             break;
         }
     }

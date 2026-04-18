@@ -16,7 +16,7 @@
 #define DISPLAY_PANEL_WIDTH         240
 #define DISPLAY_PANEL_HEIGHT        320
 #define DISPLAY_ROTATION            0       // 默认屏幕旋转角度 (0-3)
-#define DISPLAY_BRIGHTNESS_DEFAULT  128     // 默认背光亮度 (0-255)
+#define DISPLAY_BRIGHTNESS_DEFAULT  255     // 默认背光亮度 (0-255)
 
 // --- 2. 并口(8080)总线配置 ---
 #define DISPLAY_BUS_PORT            0

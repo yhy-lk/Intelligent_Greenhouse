@@ -9,12 +9,12 @@ static const char* TAG = "MAIN";
 
 // 如果你的 custom.c 还需要直接访问该句柄，
 // 可以在这里声明，或者在 lvgl_app.cpp 中通过外部链接导出
-extern QueueHandle_t slider_queue; 
+
 
 void setup() {
     // 虽然改用了 ESP_LOG，但在某些 ESP32 环境下仍需 Serial.begin 初始化串口底层
-    Serial.begin(115200); 
-    delay(1000);
+    Serial.begin(115200);
+    delay(10000);
     
     ESP_LOGI(TAG, "System Booting...");
 
@@ -22,14 +22,15 @@ void setup() {
     if (!App::CAN::init()) {
         ESP_LOGE(TAG, "CAN 模块启动失败");
     }
-
+    delay(100); // 确保 CAN 模块稳定后再继续
+    
     // 2. 初始化 LVGL 应用层 (包含 UI 任务和后台任务)
     if (!App::LVGL::init()) {
         ESP_LOGE(TAG, "LVGL 模块启动失败");
     }
+    delay(100); // 确保 CAN 模块稳定后再继续
 
-    // 将全局队列指针指向封装好的句柄（如果 GUI 回调通过 extern 使用它）
-    slider_queue = App::LVGL::get_slider_queue();
+
 
     ESP_LOGI(TAG, "所有模块初始化尝试完成");
 }

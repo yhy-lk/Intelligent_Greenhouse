@@ -21,11 +21,7 @@ namespace LVGL {
  */
 bool init();
 
-/**
- * @brief 获取滑块事件队列句柄
- * 用于其他模块（如 GUI 回调）向后台发送数据
- */
-QueueHandle_t get_slider_queue();
+
 
 } // namespace LVGL
 } // namespace App
