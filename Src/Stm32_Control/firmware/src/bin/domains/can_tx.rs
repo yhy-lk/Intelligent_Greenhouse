@@ -10,7 +10,7 @@ use embassy_time::{Duration, Ticker};
 /// CAN 遥测上报任务
 #[embassy_executor::task]
 pub async fn can_tx_task(mut tx: CanTx<'static>) {
-    trace!("Starting CAN TX task (1Hz telemetry)");
+    info!("Starting CAN TX task (1Hz telemetry)");
     let mut ticker = Ticker::every(Duration::from_millis(1000));
 
     loop {
@@ -65,6 +65,6 @@ pub async fn can_tx_task(mut tx: CanTx<'static>) {
             }
         }
 
-        trace!("CAN TX: Telementry cycle completed");
+        info!("CAN TX: Telementry cycle completed");
     }
 }

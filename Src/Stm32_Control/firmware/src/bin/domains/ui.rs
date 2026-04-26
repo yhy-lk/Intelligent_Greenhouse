@@ -30,6 +30,7 @@ pub async fn oled_ui_task(
             .inspect_err(|_| error!("Display flush error"))
             .ok();
 
-        ticker.next().await;
+        // ticker.next().await;
+        embassy_time::Timer::after_millis(100).await;
     }
 }

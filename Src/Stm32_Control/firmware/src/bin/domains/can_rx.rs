@@ -19,7 +19,7 @@ pub async fn can_rx_task(mut rx: CanRx<'static>) { // 修复 1：移除外设类
                 
                 // 校验：仅支持 11-bit 标准帧
                 let Id::Standard(std_id) = frame.id() else { 
-                    trace!("Dropped non-standard CAN frame");
+                    info!("Dropped non-standard CAN frame");
                     continue; 
                 };
 
@@ -28,18 +28,18 @@ pub async fn can_rx_task(mut rx: CanRx<'static>) { // 修复 1：移除外设类
 
                 // 节点地址路由：忽略发给其他从机的单播帧
                 if target_node != NODE_ID && target_node != 0x00 {
-                    trace!("CAN RX: dropped by node route, target={=u16}, local={=u16}", target_node, NODE_ID);
+                    info!("CAN RX: dropped by node route, target={=u16}, local={=u16}", target_node, NODE_ID);
                     continue;
                 }
 
                 let Some(func_code) = func_code_opt else { 
-                    warn!("Received unknown function code");
+                    info!("Received unknown function code");
                     continue; 
                 };
 
                 // 功能码路由：处理下发指令 (Write) 和时钟同步 (TimeSync)
                 if func_code != FuncCode::Write && func_code != FuncCode::TimeSync {
-                    trace!("CAN RX: dropped by func route, func={=u8}", func_code as u8);
+                    info!("CAN RX: dropped by func route, func={=u8}", func_code as u8);
                     continue;
                 }
 

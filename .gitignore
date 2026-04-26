@@ -15,3 +15,7 @@ Src/Stm32_Control/memory.map
 # 操作系统级缓存
 Thumbs.db
 .DS_Store
+
+# 论文
+论文
+

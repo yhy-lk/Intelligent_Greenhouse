@@ -85,7 +85,7 @@ static FILL_LIGHT_CHANNEL: Channel<ThreadModeRawMutex, RGB8, 10> = Channel::new(
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
     // 1. 初始化 MCU (BSW 内部细节)
-    let p = embassy_stm32::init(SystemConfig::system_clock_config());
+    let mut p = embassy_stm32::init(SystemConfig::system_clock_config());
 
     // 2. 组装 LED (BSW -> RTE)
     let led_pin = gpio::Output::new(p.PC0, gpio::Level::High, gpio::Speed::Low);
@@ -111,11 +111,11 @@ async fn main(spawner: Spawner) {
     let interface = I2CDisplayInterface::new(oled_i2c);
     let mut display = Ssd1306Async::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
         .into_buffered_graphics_mode();
-    display.init()
-        .await
-        .inspect(|_| defmt::info!("oled display init success"))
-        .inspect_err(|_| defmt::error!("oled display init error"))
-        .ok();
+    // display.init()
+    //     .await
+    //     .inspect(|_| defmt::info!("oled display init success"))
+    //     .inspect_err(|_| defmt::error!("oled display init error"))
+    //     .ok();
     // 这里的 display 既是具体的 SSD1306，也自动实现了 embedded-graphics DrawTarget
     spawner.spawn(ui::oled_ui_task(display, &LED_TOGGLE_COUNT)).unwrap();
 
@@ -209,23 +209,52 @@ async fn main(spawner: Spawner) {
     // 5. 挂载补风电机闭环控制任务
     spawner.spawn(ventilation_fan::ventilation_fan_task(fan_motor)).unwrap();
 
-
+    let rx_pin = embassy_stm32::gpio::Input::new(p.PB8.reborrow(), embassy_stm32::gpio::Pull::Up);
+    core::mem::forget(rx_pin);
     
     // 1. 初始化 CAN 外设 (RX: PB8, TX: PB9)
     let mut can = Can::new(p.CAN1, p.PB8, p.PB9, Irqs);
 
     // 2. 获取并应用协议层的硬件过滤器配置
-    let filters = bsw::can_proto::get_can_filters();
-    can.modify_filters()
-        .enable_bank(0, Fifo::Fifo0, filters[0])  // 绑定广播地址过滤器到 FIFO0
-        .enable_bank(1, Fifo::Fifo0, filters[1]); // 绑定本机地址过滤器到 FIFO0
+    can.modify_filters().enable_bank(0, Fifo::Fifo0, embassy_stm32::can::filter::Mask32::accept_all());
+    // let filters = bsw::can_proto::get_can_filters();
+    // can.modify_filters()
+    //     .enable_bank(0, Fifo::Fifo0, filters[0])  // 绑定广播地址过滤器到 FIFO0
+    //     .enable_bank(1, Fifo::Fifo0, filters[1]); // 绑定本机地址过滤器到 FIFO0
 
     // 3. 配置波特率 (1 Mbps) 并生效
     can.modify_config()
-        // .set_loopback(true) // 若前期没有接真实收发器和总线，需解开此注释开启回环测试
+        .set_loopback(true) // 若前期没有接真实收发器和总线，需解开此注释开启回环测试
         // .set_silent(true)
         .set_bitrate(1_000_000);
     can.enable().await;
+
+    // let mut i: u8 = 0;
+    // loop {
+    //     use defmt::unwrap;
+    //     use embassy_stm32::can::StandardId;
+    //     use embassy_stm32::can::Frame;
+    //     use embassy_time::Instant;
+    //     use defmt::info;
+    //     let tx_frame = Frame::new_data(unwrap!(StandardId::new(i as _)), &[i]).unwrap();
+    //     let tx_ts = Instant::now();
+    //     can.write(&tx_frame).await;
+
+    //     let envelope = can.read().await.unwrap();
+
+    //     // We can measure loopback latency by using receive timestamp in the `Envelope`.
+    //     // Our frame is ~55 bits long (exlcuding bit stuffing), so at 1mbps loopback delay is at least 55 us.
+    //     // When measured with `tick-hz-1_000_000` actual latency is 80~83 us, giving a combined hardware and software
+    //     // overhead of ~25 us. Note that CPU frequency can greatly affect the result.
+    //     let latency = envelope.ts.saturating_duration_since(tx_ts);
+
+    //     info!(
+    //         "loopback frame {=u8}, latency: {} us",
+    //         envelope.frame.data()[0],
+    //         latency.as_micros()
+    //     );
+    //     i = i.wrapping_add(1);
+    // }
 
     // 4. 将 CAN 实例拆分为独立的 发送半边 (Tx) 和 接收半边 (Rx)
     let (can_tx_handle, can_rx_handle) = can.split();
@@ -235,7 +264,9 @@ async fn main(spawner: Spawner) {
     spawner.spawn(can_tx::can_tx_task(can_tx_handle)).unwrap(); 
 
     // spawner.spawn(hw_test::hardware_smoke_test_task()).unwrap();
-
+    loop {
+        embassy_time::Timer::after(embassy_time::Duration::from_secs(60)).await;
+    }
 }
 
 
