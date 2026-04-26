@@ -10,6 +10,7 @@
 #include "events_init.h"
 #include <stdio.h>
 #include "lvgl.h"
+#include "can_network_service.h"
 
 #if LV_USE_GUIDER_SIMULATOR && LV_USE_FREEMASTER
 #include "freemaster_client.h"
@@ -325,7 +326,6 @@ static void screen_manual_mode_sw_awning_event_handler (lv_event_t *e)
         /* Windows 模拟器环境：LVGL 日志默认会打印到终端 */
         LV_LOG_USER("[Simulator] Awning Switch Toggled: %s", is_on ? "ON" : "OFF");
 #else
-        #include "can_protocol.h"
         /* 实际 MCU 硬件环境 */
         uint8_t target_node_id = 1;
 

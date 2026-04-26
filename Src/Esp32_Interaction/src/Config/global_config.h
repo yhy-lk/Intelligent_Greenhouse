@@ -5,8 +5,8 @@
 #define USE_FREERTOS 1 
 
 // =================== CAN 通信配置 ===================
-#define CAN_TX_PIN                  47
-#define CAN_RX_PIN                  48
+#define CAN_TX_PIN                  48
+#define CAN_RX_PIN                  47
 #define CAN_BAUD_RATE               1000000
 #define CAN_MODE                    TWAI_MODE_NORMAL
 

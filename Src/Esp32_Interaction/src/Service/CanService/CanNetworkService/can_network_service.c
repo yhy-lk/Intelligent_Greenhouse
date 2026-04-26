@@ -9,6 +9,7 @@
 #include "can_network_service.h"
 #include "sensor_state.h"       // 引入数字孪生状态层，用于数据写入
 #include <string.h>
+#include <stdio.h>
 
 // FreeRTOS 与 ESP-IDF 头文件
 #include "freertos/FreeRTOS.h"
@@ -322,8 +323,15 @@ bool can_service_send_control(uint8_t node_id, CanParamIndex param_index, float 
     s_metrics.tx_count++;
     xSemaphoreGive(s_mutex);
 
-    ESP_LOGD(TAG, "发送控制指令 -> 节点:%d, 参数:%s, 设定值:%.2f", 
+    ESP_LOGI(TAG, "发送控制指令 -> 节点:%d, 参数:%s, 设定值:%.2f", 
              node_id, can_proto_get_param_name(param_index), physical_value);
+    printf("[CAN_SVC] TX control id=0x%03X node=%u param=%s value=%.2f data=%02X %02X %02X %02X %02X %02X %02X %02X\r\n",
+           tx_msg.identifier,
+           (unsigned)node_id,
+           can_proto_get_param_name(param_index),
+           physical_value,
+           tx_msg.data[0], tx_msg.data[1], tx_msg.data[2], tx_msg.data[3],
+           tx_msg.data[4], tx_msg.data[5], tx_msg.data[6], tx_msg.data[7]);
     return true;
 }
 

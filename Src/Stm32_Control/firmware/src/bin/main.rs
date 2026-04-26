@@ -224,7 +224,7 @@ async fn main(spawner: Spawner) {
 
     // 3. 配置波特率 (1 Mbps) 并生效
     can.modify_config()
-        .set_loopback(true) // 若前期没有接真实收发器和总线，需解开此注释开启回环测试
+        // .set_loopback(true) // 若前期没有接真实收发器和总线，需解开此注释开启回环测试
         // .set_silent(true)
         .set_bitrate(1_000_000);
     can.enable().await;

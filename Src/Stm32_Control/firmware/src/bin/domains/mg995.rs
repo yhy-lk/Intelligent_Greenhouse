@@ -23,7 +23,7 @@ pub async fn mg995_task(
 
     loop {
         // 1. 获取目标状态 (锁的生命周期仅在此语句块内)
-        let target_state = { GLOBAL_STATE.lock().await.target.window_actuator.unwrap_or(false) };
+        let target_state = { GLOBAL_STATE.lock().await.target.sunshade_motor.unwrap_or(false) };
 
         // 2. 状态发生变化，或首次初始化时才执行寄存器写入
         if Some(target_state) != current_state {
