@@ -32,15 +32,19 @@ EcoAgent-Greenhouse 并不是一个传统的“触发式”物联网（IoT）温
 
 ---
 
-## 🚀 快速开始 (Getting Started)
+## 📈 愿景与未来路线图 (Roadmap)
 
-### 环境要求
-* Python 3.10+
-* 依赖 IoT 硬件网关支持 (MQTT / RESTful API)
-* **大模型 API 密钥** (推荐使用支持超长上下文及多模态的大模型，如小米 MiMo 等)
+- [x] 传感器数据与基础视觉多模态融合
+- [x] 基于天气与电价的初级长链决策推理
+- [ ] 接入多智能体框架 (如 MetaGPT / AutoGen) 实现更复杂的并发任务流
+- [ ] 边缘侧小模型部署，实现断网状态下的基础接管
+- [ ] 跨温室协同：多个大棚 Agent 之间的资源调度与共享
 
-### 安装与运行
-1. **克隆仓库**
-   ```bash
-   git clone [https://github.com/yhy-lk/Intelligent_Greenhouse.git](https://github.com/yhy-lk/Intelligent_Greenhouse.git)
-   cd EcoAgent-Greenhouse
+---
+
+## 📄 许可证 (License)
+
+本项目采用 [MIT License](LICENSE) 开源许可证。
+
+> **免责声明：** 本项目目前主要用于实验与验证 AI Agent 在农业场景的落地可行性。在真实的高价值农业生产环境部署前，请务必设置物理层面的安全保护阈值（如硬件防过载开关），以防模型幻觉造成损失。
+```
