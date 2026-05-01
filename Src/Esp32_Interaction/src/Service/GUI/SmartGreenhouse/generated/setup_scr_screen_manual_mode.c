@@ -493,9 +493,9 @@ void setup_scr_screen_manual_mode(lv_ui *ui)
     ui->screen_manual_mode_slider_ventilation_fan_speed = lv_slider_create(ui->screen_manual_mode);
     lv_obj_set_pos(ui->screen_manual_mode_slider_ventilation_fan_speed, 20, 195);
     lv_obj_set_size(ui->screen_manual_mode_slider_ventilation_fan_speed, 200, 3);
-    lv_slider_set_range(ui->screen_manual_mode_slider_ventilation_fan_speed, 0, 300);
+    lv_slider_set_range(ui->screen_manual_mode_slider_ventilation_fan_speed, 0, 5000);
     lv_slider_set_mode(ui->screen_manual_mode_slider_ventilation_fan_speed, LV_SLIDER_MODE_NORMAL);
-    lv_slider_set_value(ui->screen_manual_mode_slider_ventilation_fan_speed, 60, LV_ANIM_OFF);
+    lv_slider_set_value(ui->screen_manual_mode_slider_ventilation_fan_speed, 0, LV_ANIM_OFF);
 
     //Write style for screen_manual_mode_slider_ventilation_fan_speed, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_bg_opa(ui->screen_manual_mode_slider_ventilation_fan_speed, 200, LV_PART_MAIN|LV_STATE_DEFAULT);

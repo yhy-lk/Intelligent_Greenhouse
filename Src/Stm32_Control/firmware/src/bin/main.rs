@@ -111,11 +111,11 @@ async fn main(spawner: Spawner) {
     let interface = I2CDisplayInterface::new(oled_i2c);
     let mut display = Ssd1306Async::new(interface, DisplaySize128x64, DisplayRotation::Rotate0)
         .into_buffered_graphics_mode();
-    // display.init()
-    //     .await
-    //     .inspect(|_| defmt::info!("oled display init success"))
-    //     .inspect_err(|_| defmt::error!("oled display init error"))
-    //     .ok();
+    display.init()
+        .await
+        .inspect(|_| defmt::info!("oled display init success"))
+        .inspect_err(|_| defmt::error!("oled display init error"))
+        .ok();
     // 这里的 display 既是具体的 SSD1306，也自动实现了 embedded-graphics DrawTarget
     spawner.spawn(ui::oled_ui_task(display, &LED_TOGGLE_COUNT)).unwrap();
 
@@ -228,33 +228,6 @@ async fn main(spawner: Spawner) {
         // .set_silent(true)
         .set_bitrate(1_000_000);
     can.enable().await;
-
-    // let mut i: u8 = 0;
-    // loop {
-    //     use defmt::unwrap;
-    //     use embassy_stm32::can::StandardId;
-    //     use embassy_stm32::can::Frame;
-    //     use embassy_time::Instant;
-    //     use defmt::info;
-    //     let tx_frame = Frame::new_data(unwrap!(StandardId::new(i as _)), &[i]).unwrap();
-    //     let tx_ts = Instant::now();
-    //     can.write(&tx_frame).await;
-
-    //     let envelope = can.read().await.unwrap();
-
-    //     // We can measure loopback latency by using receive timestamp in the `Envelope`.
-    //     // Our frame is ~55 bits long (exlcuding bit stuffing), so at 1mbps loopback delay is at least 55 us.
-    //     // When measured with `tick-hz-1_000_000` actual latency is 80~83 us, giving a combined hardware and software
-    //     // overhead of ~25 us. Note that CPU frequency can greatly affect the result.
-    //     let latency = envelope.ts.saturating_duration_since(tx_ts);
-
-    //     info!(
-    //         "loopback frame {=u8}, latency: {} us",
-    //         envelope.frame.data()[0],
-    //         latency.as_micros()
-    //     );
-    //     i = i.wrapping_add(1);
-    // }
 
     // 4. 将 CAN 实例拆分为独立的 发送半边 (Tx) 和 接收半边 (Rx)
     let (can_tx_handle, can_rx_handle) = can.split();

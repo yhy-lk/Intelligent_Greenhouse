@@ -12,6 +12,14 @@ Src/Stm32_Control/Cargo.lock
 Src/Stm32_Control/firmware/Example_Stm32f4/
 Src/Stm32_Control/memory.map
 
+
+Src/Esp32_Interaction/src/Service/GUI/SmartGreenhouse/import
+Src/Esp32_Interaction/src/Service/GUI/SmartGreenhouse/lib
+Src/Esp32_Interaction/src/Service/GUI/SmartGreenhouse/lvgl
+Src/Esp32_Interaction/src/Service/GUI/SmartGreenhouse/lvgl-simulator
+Src/Esp32_Interaction/src/Service/GUI/SmartGreenhouse/temp
+Src/Esp32_Interaction/src/Service/GUI/SmartGreenhouse/SmartGreenhouse.guiguider
+
 # 操作系统级缓存
 Thumbs.db
 .DS_Store

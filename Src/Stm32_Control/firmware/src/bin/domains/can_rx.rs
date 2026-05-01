@@ -65,8 +65,10 @@ pub async fn can_rx_task(mut rx: CanRx<'static>) { // 修复 1：移除外设类
                             }
                             x if x == ParamIndex::ControlMode as u8 => {
                                 state.target.control_mode = Some(if value_u32 == 1 {
+                                    info!("Switched to AUTO control mode");
                                     ControlMode::Auto
                                 } else {
+                                    info!("Switched to MANUAL control mode");
                                     ControlMode::Manual
                                 });
                             }

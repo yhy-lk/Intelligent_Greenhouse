@@ -48,7 +48,7 @@ pub async fn sht30_task(
                     state.current.humidity_air = Some(meas.hum_rh);
                 } 
                 
-                info!("SHT30 Measurement - Temp: {} °C, Humidity: {} %RH", meas.temp_c, meas.hum_rh);
+                debug!("SHT30 Measurement - Temp: {} °C, Humidity: {} %RH", meas.temp_c, meas.hum_rh);
             }
             Err(e) => {
                 error!("SHT30 read failed: {:?}", e);

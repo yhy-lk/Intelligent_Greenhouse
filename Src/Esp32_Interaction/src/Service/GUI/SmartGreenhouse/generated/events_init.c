@@ -10,12 +10,28 @@
 #include "events_init.h"
 #include <stdio.h>
 #include "lvgl.h"
-#include "can_network_service.h"
 
 #if LV_USE_GUIDER_SIMULATOR && LV_USE_FREEMASTER
 #include "freemaster_client.h"
 #endif
 
+#include "custom.h"
+// #include "custom.h"
+
+
+static void screen_home_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_SCREEN_LOAD_START:
+    {
+
+        break;
+    }
+    default:
+        break;
+    }
+}
 
 static void screen_home_img_control_event_handler (lv_event_t *e)
 {
@@ -75,6 +91,7 @@ static void screen_home_img_trend_event_handler (lv_event_t *e)
 
 void events_init_screen_home (lv_ui *ui)
 {
+    lv_obj_add_event_cb(ui->screen_home, screen_home_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_home_img_control, screen_home_img_control_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_home_img_overview, screen_home_img_overview_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_home_img_setting, screen_home_img_setting_event_handler, LV_EVENT_ALL, ui);
@@ -282,6 +299,11 @@ static void screen_manual_mode_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     switch (code) {
+    case LV_EVENT_SCREEN_LOAD_START:
+    {
+        custom_ui_send_manual_control_mode_command_on_screen_enter();
+        break;
+    }
     case LV_EVENT_GESTURE:
     {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
@@ -316,30 +338,41 @@ static void screen_manual_mode_sw_awning_event_handler (lv_event_t *e)
     {
         lv_obj_t * status_obj = lv_event_get_target(e);
         int status = lv_obj_has_state(status_obj, LV_STATE_CHECKED) ? true : false;
-        /* 1. 获取触发事件的开关对象及其当前状态 */
-        lv_obj_t * sw_obj = lv_event_get_target(e);
-        bool is_on = lv_obj_has_state(sw_obj, LV_STATE_CHECKED);
-        float target_value = is_on ? 1.0f : 0.0f;
+        custom_ui_handle_awning_sunshade_motor_switch_value_changed_event(e);
 
-        /* 2. 跨平台隔离逻辑 */
-#if defined(_WIN32) || defined(WIN32)
-        /* Windows 模拟器环境：LVGL 日志默认会打印到终端 */
-        LV_LOG_USER("[Simulator] Awning Switch Toggled: %s", is_on ? "ON" : "OFF");
-#else
-        /* 实际 MCU 硬件环境 */
-        uint8_t target_node_id = 1;
 
-        /* 假设 can_service_send_control 的声明你能通过某种方式（比如全局 extern 或者修改后的 custom.h）让 events_init.c 认识它 */
-        bool req_sent = can_service_send_control(target_node_id, PARAM_IDX_SUNSHADE_MOTOR, target_value);
+        break;
+    }
+    default:
+        break;
+    }
+}
 
-        if (!req_sent) {
-            /* 使用 LVGL 的错误日志宏 */
-            LV_LOG_ERROR("CUSTOM_UI: Failed to send Awning control command!");
-        } else {
-            /* 使用 LVGL 的用户级日志宏 (相当于 INFO) */
-            LV_LOG_USER("CUSTOM_UI: Awning control sent: %s", is_on ? "ON" : "OFF");
-        }
-#endif
+static void screen_manual_mode_sw_water_pump_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_VALUE_CHANGED:
+    {
+        lv_obj_t * status_obj = lv_event_get_target(e);
+        int status = lv_obj_has_state(status_obj, LV_STATE_CHECKED) ? true : false;
+        custom_ui_handle_water_pump_switch_value_changed_event(e);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+static void screen_manual_mode_sw_humidifier_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_VALUE_CHANGED:
+    {
+        lv_obj_t * status_obj = lv_event_get_target(e);
+        int status = lv_obj_has_state(status_obj, LV_STATE_CHECKED) ? true : false;
+        custom_ui_handle_humidifier_switch_value_changed_event(e);
         break;
     }
     default:
@@ -360,6 +393,8 @@ static void screen_manual_mode_slider_ventilation_fan_speed_event_handler (lv_ev
         sprintf(str, "%d rpm", val);
 
         lv_label_set_text(guider_ui.screen_manual_mode_label_ventilation_fan_speed_value, str);
+
+        custom_ui_handle_ventilation_fan_speed_slider_value_changed_event(e);
         break;
     }
     default:
@@ -391,6 +426,8 @@ void events_init_screen_manual_mode (lv_ui *ui)
 {
     lv_obj_add_event_cb(ui->screen_manual_mode, screen_manual_mode_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_manual_mode_sw_awning, screen_manual_mode_sw_awning_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_manual_mode_sw_water_pump, screen_manual_mode_sw_water_pump_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_manual_mode_sw_humidifier, screen_manual_mode_sw_humidifier_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_manual_mode_slider_ventilation_fan_speed, screen_manual_mode_slider_ventilation_fan_speed_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_manual_mode_slider_brightness_value, screen_manual_mode_slider_brightness_value_event_handler, LV_EVENT_ALL, ui);
 }

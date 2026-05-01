@@ -65,6 +65,6 @@ pub async fn can_tx_task(mut tx: CanTx<'static>) {
             }
         }
 
-        info!("CAN TX: Telementry cycle completed");
+        debug!("CAN TX: Telementry cycle completed");
     }
 }

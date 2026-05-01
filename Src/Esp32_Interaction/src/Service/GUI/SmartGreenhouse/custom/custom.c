@@ -14,7 +14,7 @@
 #include "lvgl.h"
 #include "custom.h"
 #include "sensor_state.h"
-#include "can_protocol.h"
+#include "can_network_service.h"
 #include "esp_log.h"       // 引入 ESP-IDF 的日志库
 
 // 引入全局 UI 结构体
@@ -149,3 +149,142 @@ void custom_update_screen_overview(void)
 
     ESP_LOGD(TAG, "Screen overview updated successfully.");
 }
+
+/**
+ * @brief 处理遮阳篷/遮阳帘电机开关状态切换的 LVGL 事件
+ * * @param e 指向 LVGL 事件对象的指针
+ */
+void custom_ui_handle_awning_sunshade_motor_switch_value_changed_event(lv_event_t * e)
+{
+    /* 1. 获取触发事件的开关对象及其当前状态 */
+    lv_obj_t * sw_obj = lv_event_get_target(e);
+    bool is_on = lv_obj_has_state(sw_obj, LV_STATE_CHECKED);
+    float target_value = is_on ? 1.0f : 0.0f;
+
+    /* 实际 MCU 硬件环境 */
+    uint8_t target_node_id = 1;
+
+    /* 假设 can_service_send_control 的声明你能通过某种方式（比如全局 extern 或者修改后的 custom.h）让 events_init.c 认识它 */
+    bool req_sent = can_service_send_control(target_node_id, PARAM_IDX_SUNSHADE_MOTOR, target_value);
+
+    if (!req_sent) {
+        /* 使用 LVGL 的错误日志宏 */
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send Awning control command!");
+    } else {
+        /* 使用 LVGL 的用户级日志宏 (相当于 INFO) */
+        LV_LOG_USER("CUSTOM_UI: Awning control sent: %s", is_on ? "ON" : "OFF");
+    }
+}
+
+/**
+ * @brief 处理灌溉水泵开关状态切换的 LVGL 事件
+ * * @param e 指向 LVGL 事件对象的指针
+ */
+void custom_ui_handle_water_pump_switch_value_changed_event(lv_event_t * e)
+{
+    /* 1. 获取触发事件的开关对象及其当前状态 */
+    lv_obj_t * sw_obj = lv_event_get_target(e);
+    bool is_on = lv_obj_has_state(sw_obj, LV_STATE_CHECKED);
+    float target_value = is_on ? 1.0f : 0.0f;
+
+    /* 实际 MCU 硬件环境 */
+    uint8_t target_node_id = 1;
+
+    bool req_sent = can_service_send_control(target_node_id, PARAM_IDX_WATER_PUMP, target_value);
+
+    if (!req_sent) {
+        /* 使用 LVGL 的错误日志宏 */
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send Water pump control command!");
+    } else {
+        /* 使用 LVGL 的用户级日志宏 (相当于 INFO) */
+        LV_LOG_USER("CUSTOM_UI: Water pump control sent: %s", is_on ? "ON" : "OFF");
+    }
+}
+
+/**
+ * @brief 处理加湿器开关状态切换的 LVGL 事件
+ * * @param e 指向 LVGL 事件对象的指针
+ */
+void custom_ui_handle_humidifier_switch_value_changed_event(lv_event_t * e)
+{
+    /* 1. 获取触发事件的开关对象及其当前状态 */
+    lv_obj_t * sw_obj = lv_event_get_target(e);
+    bool is_on = lv_obj_has_state(sw_obj, LV_STATE_CHECKED);
+    float target_value = is_on ? 1.0f : 0.0f;
+
+    /* 实际 MCU 硬件环境 */
+    uint8_t target_node_id = 1;
+
+    bool req_sent = can_service_send_control(target_node_id, PARAM_IDX_HUMIDIFIER, target_value);
+
+    if (!req_sent) {
+        /* 使用 LVGL 的错误日志宏 */
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send Humidifier control command!");
+    } else {
+        /* 使用 LVGL 的用户级日志宏 (相当于 INFO) */
+        LV_LOG_USER("CUSTOM_UI: Humidifier control sent: %s", is_on ? "ON" : "OFF");
+    }
+}
+
+/**
+ * @brief 处理通风风扇转速滑块值变化的 LVGL 事件
+ *
+ * STM32 端存在双层控制逻辑：
+ *   - PARAM_IDX_VENTILATION_FAN (0x13) = 主电源开关 (bool)
+ *   - PARAM_IDX_FAN_SPEED       (0x35) = 目标转速设定 (u32, RPM)
+ *
+ * 当主开关为 OFF 时，STM32 会将目标转速强制覆写为 0。
+ * 因此滑块变化时，必须先开启主开关，再发送目标转速。
+ *
+ * @param e 指向 LVGL 事件对象的指针
+ */
+void custom_ui_handle_ventilation_fan_speed_slider_value_changed_event(lv_event_t * e)
+{
+    /* 1. 从滑块控件中读取当前值 */
+    int32_t slider_val = lv_slider_get_value(guider_ui.screen_manual_mode_slider_ventilation_fan_speed);
+
+    /* 2. 将整数滑块值转换为浮点物理值 */
+    float target_rpm = (float)slider_val;
+
+    /* 实际 MCU 硬件环境 */
+    uint8_t target_node_id = 1;
+
+    /* 3. 先开启通风扇主电源开关 (PARAM_IDX_VENTILATION_FAN = 1.0f) */
+    bool power_sent = can_service_send_control(target_node_id, PARAM_IDX_VENTILATION_FAN, 1.0f);
+    if (!power_sent) {
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send Ventilation fan power ON command!");
+        return;
+    }
+
+    /* 4. 再发送目标转速 (PARAM_IDX_FAN_SPEED) */
+    bool speed_sent = can_service_send_control(target_node_id, PARAM_IDX_FAN_SPEED, target_rpm);
+
+    if (!speed_sent) {
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send Ventilation fan speed control command!");
+    } else {
+        LV_LOG_USER("CUSTOM_UI: Ventilation fan power ON, speed sent: %ld rpm", (long)slider_val);
+    }
+}
+
+/**
+ * @brief 屏幕进入时通过 CAN 总线发送手动控制模式指令
+ *
+ * 当屏幕加载/导入时自动调用此函数，无条件地向目标节点发送手动模式 (0.0f) 指令，
+ * 将系统切换为手动控制模式。
+ */
+void custom_ui_send_manual_control_mode_command_on_screen_enter(void)
+{
+    /* 实际 MCU 硬件环境 */
+    uint8_t target_node_id = 1;
+
+    /* 手动模式对应 PARAM_IDX_CONTROL_MODE = 0 */
+    bool req_sent = can_service_send_control(target_node_id, PARAM_IDX_CONTROL_MODE, 0.0f);
+
+    if (!req_sent) {
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send manual control mode command on screen enter!");
+    } else {
+        LV_LOG_USER("CUSTOM_UI: Manual control mode command sent on screen enter.");
+    }
+}
+
+

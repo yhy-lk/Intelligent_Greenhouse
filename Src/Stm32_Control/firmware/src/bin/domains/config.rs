@@ -40,7 +40,7 @@ impl SystemConfig {
 
     pub fn i2c2_config() -> embassy_stm32::i2c::Config {
         let mut config = embassy_stm32::i2c::Config::default();
-        config.frequency = embassy_stm32::time::Hertz(400_000);
+        config.frequency = embassy_stm32::time::Hertz(100_000);
         config.gpio_speed = embassy_stm32::gpio::Speed::High;
         config.scl_pullup = false;
         config.sda_pullup = false;

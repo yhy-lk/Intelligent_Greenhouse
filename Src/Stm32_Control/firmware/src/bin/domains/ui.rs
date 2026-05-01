@@ -17,7 +17,7 @@ pub async fn oled_ui_task(
 ) 
 
 {
-    let mut ticker = embassy_time::Ticker::every(embassy_time::Duration::from_millis(100));
+    // let mut ticker = embassy_time::Ticker::every(embassy_time::Duration::from_millis(100));
     loop {
         let led_count = led_toggle_count.wait().await;
 

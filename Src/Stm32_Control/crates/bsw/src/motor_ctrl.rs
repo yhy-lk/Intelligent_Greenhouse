@@ -9,7 +9,9 @@ use embassy_stm32::timer::simple_pwm::SimplePwm;
 // ==========================================
 // 物理模型常量定标
 // ==========================================
-const ENCODER_TICKS_PER_REV: f32 = 1024.0;
+const ENCODER_TICKS_PER_REV: f32 = 64.0;
+const ENCODER_DIRECTION_SIGN: f32 = -1.0;
+const PID_INTEGRAL_LIMIT_SCALE: f32 = 5.0;
 pub const WHEEL_RADIUS_M: f32 = 0.05;
 const PI: f32 = core::f32::consts::PI;
 
@@ -24,6 +26,8 @@ pub struct FanMotor<'d> {
     max_duty: u32,
     last_qei_count: u16, // 必须强制为 u16，以匹配 TIM3 硬件寄存器宽度
     current_rpm: f32,
+    last_pwm_command: f32,
+    last_pwm_duty: u32,
 }
 
 impl<'d> FanMotor<'d> {
@@ -44,10 +48,12 @@ impl<'d> FanMotor<'d> {
             dir_in1,
             dir_in2,
             qei,
-            pid: PidController::new((max_duty as f32) * 0.5, max_duty as f32),
+            pid: PidController::new((max_duty as f32) * PID_INTEGRAL_LIMIT_SCALE, max_duty as f32),
             max_duty,
             last_qei_count: 0,
             current_rpm: 0.0,
+            last_pwm_command: 0.0,
+            last_pwm_duty: 0,
         }
     }
 
@@ -68,8 +74,9 @@ impl<'d> FanMotor<'d> {
         self.last_qei_count = current_count;
 
         if dt_sec > 0.0 {
-            // i16 转 f32 是绝对安全的，不会丢失精度
-            self.current_rpm = (delta_ticks as f32 / ENCODER_TICKS_PER_REV) * (60.0 / dt_sec);
+            // 将编码器计数方向对齐到“正 PWM = 正转速”的软件约定。
+            self.current_rpm = ((delta_ticks as f32) * ENCODER_DIRECTION_SIGN / ENCODER_TICKS_PER_REV)
+                * (60.0 / dt_sec);
         } else {
             self.current_rpm = 0.0;
         }
@@ -82,6 +89,42 @@ impl<'d> FanMotor<'d> {
 
     pub fn get_rpm(&self) -> f32 {
         self.current_rpm
+    }
+
+    pub fn get_max_duty(&self) -> u32 {
+        self.max_duty
+    }
+
+    pub fn get_last_pwm_command(&self) -> f32 {
+        self.last_pwm_command
+    }
+
+    pub fn get_last_pwm_duty(&self) -> u32 {
+        self.last_pwm_duty
+    }
+
+    pub fn get_pid_error(&self) -> f32 {
+        self.pid.last_error()
+    }
+
+    pub fn get_pid_integral(&self) -> f32 {
+        self.pid.integral()
+    }
+
+    pub fn get_pid_integral_limit(&self) -> f32 {
+        self.pid.integral_limit()
+    }
+
+    pub fn get_pid_derivative(&self) -> f32 {
+        self.pid.last_derivative()
+    }
+
+    pub fn get_pid_output(&self) -> f32 {
+        self.pid.last_output()
+    }
+
+    pub fn get_pid_output_limit(&self) -> f32 {
+        self.pid.output_limit()
     }
 
     // ==========================================
@@ -107,6 +150,8 @@ impl<'d> FanMotor<'d> {
 
         // 占空比限幅，确保不溢出 ARR 寄存器
         let duty_u32 = (duty_val as u32).min(self.max_duty);
+        self.last_pwm_command = duty_signed;
+        self.last_pwm_duty = duty_u32;
 
         if duty_u32 == 0 {
             self.dir_in1.set_low();
