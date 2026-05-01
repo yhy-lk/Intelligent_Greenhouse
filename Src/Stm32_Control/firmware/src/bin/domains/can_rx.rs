@@ -28,24 +28,24 @@ pub async fn can_rx_task(mut rx: CanRx<'static>) { // 修复 1：移除外设类
 
                 // 节点地址路由：忽略发给其他从机的单播帧
                 if target_node != NODE_ID && target_node != 0x00 {
-                    info!("CAN RX: dropped by node route, target={=u16}, local={=u16}", target_node, NODE_ID);
+                    debug!("CAN RX: dropped by node route, target={=u16}, local={=u16}", target_node, NODE_ID);
                     continue;
                 }
 
                 let Some(func_code) = func_code_opt else { 
-                    info!("Received unknown function code");
+                    debug!("Received unknown function code");
                     continue; 
                 };
 
                 // 功能码路由：处理下发指令 (Write) 和时钟同步 (TimeSync)
                 if func_code != FuncCode::Write && func_code != FuncCode::TimeSync {
-                    info!("CAN RX: dropped by func route, func={=u8}", func_code as u8);
+                    debug!("CAN RX: dropped by func route, func={=u8}", func_code as u8);
                     continue;
                 }
 
                 // 载荷解析
                 if let Some((index, value_u32)) = parse_rx_payload(&frame) {
-                    info!(
+                    debug!(
                         "CAN RX frame accepted: id=0x{:03X}, node={=u16}, func={=u8}, index=0x{:02X}, value={} ",
                         std_id.as_raw(),
                         target_node,
@@ -134,7 +134,7 @@ pub async fn can_rx_task(mut rx: CanRx<'static>) { // 修复 1：移除外设类
                         }
                     } 
                     
-                    info!("CAN RX: state updated [index={=u8}, raw={}]", index, value_u32);
+                    debug!("CAN RX: state updated [index={=u8}, raw={}]", index, value_u32);
                 }
             }
             Err(e) => {

@@ -78,15 +78,15 @@ pub async fn ventilation_fan_task(mut motor: FanMotor<'static>) {
         let max_duty = motor.get_max_duty();
 
         if last_actual_rpm_raw != Some(actual_rpm) {
-            info!("ventilation_fan.actual_rpm_raw -> {}", actual_rpm);
+            debug!("ventilation_fan.actual_rpm_raw -> {}", actual_rpm);
             last_actual_rpm_raw = Some(actual_rpm);
         }
         if last_actual_rpm_reported != Some(actual_rpm_reported) {
-            info!("ventilation_fan.actual_rpm -> {}", actual_rpm_reported);
+            debug!("ventilation_fan.actual_rpm -> {}", actual_rpm_reported);
             last_actual_rpm_reported = Some(actual_rpm_reported);
         }
 
-        info!(
+        debug!(
             "ventilation_fan.ctrl target={} actual={} error={} integral={}/{} derivative={} pid_output={}/{} pwm_command={} pwm_duty={}/{}",
             target_rpm,
             actual_rpm,

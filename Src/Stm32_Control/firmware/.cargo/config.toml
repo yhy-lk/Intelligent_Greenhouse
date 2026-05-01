@@ -7,7 +7,76 @@ runner = "probe-rs run --chip STM32F407VETx --protocol swd --probe 0483:3748"
 target = "thumbv7em-none-eabi"
 
 [env]
+# ============================================================
+# DEFMT 日志级别控制 (模块级过滤)
+# ============================================================
+# 级别从低到高: trace > debug > info > warn > error
+#
+# 使用方法：取消注释或修改对应行即可控制单个模块的日志级别
+# 例如要调试 can_rx 模块，改为:
+#   DEFMT_LOG = "info,main::domains::can_rx=trace"
+#
+# 模块路径说明 (基于 Cargo.toml 的 bin name):
+#   main::domains::can_rx          - CAN 接收路由
+#   main::domains::can_tx          - CAN 发送上报
+#   main::domains::sht30           - SHT30 温湿度传感器
+#   main::domains::soil_moisture   - 土壤湿度 ADC
+#   main::domains::bh1750          - BH1750 光照传感器
+#   main::domains::water_pump      - 水泵继电器控制
+#   main::domains::humidifier      - 加湿器继电器控制
+#   main::domains::mg995           - MG995 舵机/遮阳棚
+#   main::domains::ventilation_fan - 补风电机 PID 闭环
+#   main::domains::hw_test         - 硬件冒烟测试
+#   main::domains::ui              - OLED UI 显示
+#   main::domains::dispatcher      - LED 调度
+# ============================================================
+
+# --- 默认配置：全局 info，屏蔽 Embassy 框架底层噪音 ---
 DEFMT_LOG = "info"
+
+# --- 调试某个模块时，取消注释下面对应的行，并注释掉上面的默认行 ---
+
+# 调试 CAN 接收
+# DEFMT_LOG = "info,main::domains::can_rx=trace,embassy_stm32=warn,embassy_executor=warn"
+
+# 调试 CAN 发送
+# DEFMT_LOG = "info,main::domains::can_tx=trace,embassy_stm32=warn,embassy_executor=warn"
+
+# 调试 SHT30 温湿度传感器
+# DEFMT_LOG = "info,main::domains::sht30=trace,embassy_stm32=warn,embassy_executor=warn"
+
+# 调试土壤湿度传感器
+# DEFMT_LOG = "info,main::domains::soil_moisture=trace,embassy_stm32=warn,embassy_executor=warn"
+
+# 调试 BH1750 光照传感器
+# DEFMT_LOG = "info,main::domains::bh1750=trace,embassy_stm32=warn,embassy_executor=warn"
+
+# 调试水泵
+# DEFMT_LOG = "info,main::domains::water_pump=trace,embassy_stm32=warn,embassy_executor=warn"
+
+# 调试加湿器
+# DEFMT_LOG = "info,main::domains::humidifier=trace,embassy_stm32=warn,embassy_executor=warn"
+
+# 调试舵机/遮阳棚
+# DEFMT_LOG = "info,main::domains::mg995=trace,embassy_stm32=warn,embassy_executor=warn"
+
+# 调试补风电机 PID
+# DEFMT_LOG = "info,main::domains::ventilation_fan=trace"
+
+# 调试 OLED UI
+# DEFMT_LOG = "info,main::domains::ui=trace,embassy_stm32=warn,embassy_executor=warn"
+
+# 调试硬件冒烟测试
+# DEFMT_LOG = "info,main::domains::hw_test=trace,embassy_stm32=warn,embassy_executor=warn"
+
+# 调试 LED 调度
+# DEFMT_LOG = "info,main::domains::dispatcher=trace,embassy_stm32=warn,embassy_executor=warn"
+
+# 同时调试多个模块
+# DEFMT_LOG = "info,main::domains::can_rx=trace,main::domains::can_tx=trace,embassy_stm32=warn,embassy_executor=warn"
+
+# 全开（开发紧急排查用，日志量极大）
+# DEFMT_LOG = "trace,embassy_stm32=warn,embassy_executor=warn"
 
 # HTTP/HTTPS proxy configuration for faster downloads
 # [http]

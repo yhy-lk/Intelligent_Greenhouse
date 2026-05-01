@@ -1,4 +1,5 @@
 
+use defmt::*;
 use crate::shared::Ws2812Sender;
 use embassy_time::Ticker;
 // use smart_leds::RGB8;
@@ -8,11 +9,13 @@ use smart_leds::{hsv::{hsv2rgb, Hsv}};
 pub async fn dispatcher_task(
     fill_light_sender: Ws2812Sender,
 ) {
+    info!("Starting dispatcher task");
     let mut hsv = Hsv { hue: 0, sat: 255, val: 10 }; // 红色
     fill_light_sender.send(hsv2rgb(hsv)).await;
     let mut ticker = Ticker::every(embassy_time::Duration::from_millis(10));
     loop {
         hsv.hue = (hsv.hue + 1) as u8; // 每次增加1度，形成彩虹效果
+        trace!("Dispatcher: hue={=u8}", hsv.hue);
         fill_light_sender.send(hsv2rgb(hsv) ).await;
 
         ticker.next().await;
