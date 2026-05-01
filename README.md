@@ -42,5 +42,5 @@ EcoAgent-Greenhouse 并不是一个传统的“触发式”物联网（IoT）温
 ### 安装与运行
 1. **克隆仓库**
    ```bash
-   git clone [https://github.com/yourusername/EcoAgent-Greenhouse.git](https://github.com/yourusername/EcoAgent-Greenhouse.git)
+   git clone [https://github.com/yhy-lk/Intelligent_Greenhouse.git](https://github.com/yhy-lk/Intelligent_Greenhouse.git)
    cd EcoAgent-Greenhouse
