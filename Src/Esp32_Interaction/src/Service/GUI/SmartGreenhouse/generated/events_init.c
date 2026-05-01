@@ -412,9 +412,24 @@ static void screen_manual_mode_slider_brightness_value_event_handler (lv_event_t
 
         char str[32];
 
-        sprintf(str, "%d lx", val);
+        sprintf(str, "%d", val);
 
         lv_label_set_text(guider_ui.screen_manual_mode_label_brightness_value, str);
+        custom_ui_handle_light_brightness_slider_value_changed_event(e);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+static void screen_manual_mode_slider_color_adjustment_event_handler (lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    switch (code) {
+    case LV_EVENT_VALUE_CHANGED:
+    {
+        custom_ui_handle_light_color_slider_value_changed_event(e);
         break;
     }
     default:
@@ -430,6 +445,7 @@ void events_init_screen_manual_mode (lv_ui *ui)
     lv_obj_add_event_cb(ui->screen_manual_mode_sw_humidifier, screen_manual_mode_sw_humidifier_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_manual_mode_slider_ventilation_fan_speed, screen_manual_mode_slider_ventilation_fan_speed_event_handler, LV_EVENT_ALL, ui);
     lv_obj_add_event_cb(ui->screen_manual_mode_slider_brightness_value, screen_manual_mode_slider_brightness_value_event_handler, LV_EVENT_ALL, ui);
+    lv_obj_add_event_cb(ui->screen_manual_mode_slider_color_adjustment, screen_manual_mode_slider_color_adjustment_event_handler, LV_EVENT_ALL, ui);
 }
 
 static void screen_auto_mode_event_handler (lv_event_t *e)

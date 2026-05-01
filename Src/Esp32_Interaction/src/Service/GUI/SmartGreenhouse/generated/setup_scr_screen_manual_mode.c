@@ -470,7 +470,7 @@ void setup_scr_screen_manual_mode(lv_ui *ui)
     ui->screen_manual_mode_label_ventilation_fan_speed_value = lv_label_create(ui->screen_manual_mode);
     lv_obj_set_pos(ui->screen_manual_mode_label_ventilation_fan_speed_value, 160, 177);
     lv_obj_set_size(ui->screen_manual_mode_label_ventilation_fan_speed_value, 60, 15);
-    lv_label_set_text(ui->screen_manual_mode_label_ventilation_fan_speed_value, "60 rpm");
+    lv_label_set_text(ui->screen_manual_mode_label_ventilation_fan_speed_value, "0 rpm");
     lv_label_set_long_mode(ui->screen_manual_mode_label_ventilation_fan_speed_value, LV_LABEL_LONG_WRAP);
 
     //Write style for screen_manual_mode_label_ventilation_fan_speed_value, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -580,9 +580,9 @@ void setup_scr_screen_manual_mode(lv_ui *ui)
     ui->screen_manual_mode_slider_brightness_value = lv_slider_create(ui->screen_manual_mode);
     lv_obj_set_pos(ui->screen_manual_mode_slider_brightness_value, 20, 260);
     lv_obj_set_size(ui->screen_manual_mode_slider_brightness_value, 200, 3);
-    lv_slider_set_range(ui->screen_manual_mode_slider_brightness_value, 0, 1000);
+    lv_slider_set_range(ui->screen_manual_mode_slider_brightness_value, 0, 100);
     lv_slider_set_mode(ui->screen_manual_mode_slider_brightness_value, LV_SLIDER_MODE_NORMAL);
-    lv_slider_set_value(ui->screen_manual_mode_slider_brightness_value, 300, LV_ANIM_OFF);
+    lv_slider_set_value(ui->screen_manual_mode_slider_brightness_value, 0, LV_ANIM_OFF);
 
     //Write style for screen_manual_mode_slider_brightness_value, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_bg_opa(ui->screen_manual_mode_slider_brightness_value, 200, LV_PART_MAIN|LV_STATE_DEFAULT);
@@ -608,7 +608,7 @@ void setup_scr_screen_manual_mode(lv_ui *ui)
     ui->screen_manual_mode_label_brightness_value = lv_label_create(ui->screen_manual_mode);
     lv_obj_set_pos(ui->screen_manual_mode_label_brightness_value, 169, 243);
     lv_obj_set_size(ui->screen_manual_mode_label_brightness_value, 50, 15);
-    lv_label_set_text(ui->screen_manual_mode_label_brightness_value, "300 lx");
+    lv_label_set_text(ui->screen_manual_mode_label_brightness_value, "0");
     lv_label_set_long_mode(ui->screen_manual_mode_label_brightness_value, LV_LABEL_LONG_WRAP);
 
     //Write style for screen_manual_mode_label_brightness_value, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -654,9 +654,9 @@ void setup_scr_screen_manual_mode(lv_ui *ui)
     ui->screen_manual_mode_slider_color_adjustment = lv_slider_create(ui->screen_manual_mode);
     lv_obj_set_pos(ui->screen_manual_mode_slider_color_adjustment, 20, 295);
     lv_obj_set_size(ui->screen_manual_mode_slider_color_adjustment, 200, 3);
-    lv_slider_set_range(ui->screen_manual_mode_slider_color_adjustment, 0, 100);
+    lv_slider_set_range(ui->screen_manual_mode_slider_color_adjustment, 0, 360);
     lv_slider_set_mode(ui->screen_manual_mode_slider_color_adjustment, LV_SLIDER_MODE_NORMAL);
-    lv_slider_set_value(ui->screen_manual_mode_slider_color_adjustment, 50, LV_ANIM_OFF);
+    lv_slider_set_value(ui->screen_manual_mode_slider_color_adjustment, 0, LV_ANIM_OFF);
 
     //Write style for screen_manual_mode_slider_color_adjustment, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
     lv_obj_set_style_bg_opa(ui->screen_manual_mode_slider_color_adjustment, 0, LV_PART_MAIN|LV_STATE_DEFAULT);

@@ -11,6 +11,7 @@
  * INCLUDES
  *********************/
 #include <stdio.h>
+#include <math.h>
 #include "lvgl.h"
 #include "custom.h"
 #include "sensor_state.h"
@@ -287,4 +288,109 @@ void custom_ui_send_manual_control_mode_command_on_screen_enter(void)
     }
 }
 
+/**
+ * @brief 处理补光灯亮度滑块值变化的 LVGL 事件
+ *
+ * 与通风风扇滑块类似的双层控制逻辑：
+ *   - PARAM_IDX_LIGHT_MAIN_POWER (0x11) = 补光灯主电源开关 (bool)
+ *   - PARAM_IDX_LIGHT_PWM_DUTY   (0x33) = PWM 占空比/亮度设定 (u32)
+ *
+ * 当主开关为 OFF 时，STM32 端可能忽略 PWM 值。
+ * 因此滑块变化时，必须先开启主电源，再发送 PWM 占空比。
+ *
+ * @param e 指向 LVGL 事件对象的指针
+ */
+void custom_ui_handle_light_brightness_slider_value_changed_event(lv_event_t * e)
+{
+    /* 1. 从滑块控件中读取当前值 */
+    int32_t slider_val = lv_slider_get_value(guider_ui.screen_manual_mode_slider_brightness_value);
 
+    /* 2. 将整数滑块值转换为浮点物理值 */
+    float target_pwm_duty = (float)slider_val;
+
+    /* 实际 MCU 硬件环境 */
+    uint8_t target_node_id = 1;
+
+    /* 3. 先开启补光灯主电源开关 (PARAM_IDX_LIGHT_MAIN_POWER = 1.0f) */
+    bool power_sent = can_service_send_control(target_node_id, PARAM_IDX_LIGHT_MAIN_POWER, 1.0f);
+    if (!power_sent) {
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send Light main power ON command!");
+        return;
+    }
+
+    /* 4. 再发送 PWM 占空比/亮度 (PARAM_IDX_LIGHT_PWM_DUTY) */
+    bool duty_sent = can_service_send_control(target_node_id, PARAM_IDX_LIGHT_PWM_DUTY, target_pwm_duty);
+
+    if (!duty_sent) {
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send Light brightness (PWM duty) control command!");
+    } else {
+        LV_LOG_USER("CUSTOM_UI: Light main power ON, brightness (PWM duty) sent: %ld", (long)slider_val);
+    }
+}
+
+/**
+ * @brief 处理补光灯颜色滑块值变化的 LVGL 事件
+ *
+ * 前端 UI 颜色带为逆序排列（红-洋红-蓝-青-绿-黄-红），
+ * 使用公式: Hue = 360 - 滑块值 将 UI 滑块值 (0-360) 映射到 HSV 色相。
+ * 固定 S=100%, V=100%，将 HSV 转换为 RGB 后组装成 0x00RRGGBB 格式发送。
+ *
+ * CAN 协议:
+ *   - PARAM_IDX_LIGHT_MAIN_POWER (0x10) = 补光灯主电源开关 (bool)
+ *   - PARAM_IDX_LIGHT_COLOR_RGB  (0x50) = 照明颜色 (0x00RRGGBB)
+ *
+ * @param e 指向 LVGL 事件对象的指针
+ */
+void custom_ui_handle_light_color_slider_value_changed_event(lv_event_t * e)
+{
+    /* 1. 从滑块控件中读取当前值 (0-360) */
+    int32_t slider_val = lv_slider_get_value(guider_ui.screen_manual_mode_slider_color_adjustment);
+
+    /* 2. 逆序映射: Hue = 360 - slider_val */
+    int32_t hue = 360 - slider_val;
+    if (hue < 0)   hue = 0;
+    if (hue > 360)  hue = 360;
+
+    /* 3. HSV (H, S=100%, V=100%) -> RGB 转换 */
+    /*    算法: H'=H/60, X=1-|H'mod2-1|, 根据 H'整数部分查表 */
+    uint8_t r, g, b;
+
+    float h_prime = (float)hue / 60.0f;
+    float x = 1.0f - fabsf(fmodf(h_prime, 2.0f) - 1.0f);
+    /* 将 0.0~1.0 映射到 0~255，四舍五入 */
+    uint8_t c255 = 255;
+    uint8_t x255 = (uint8_t)(x * 255.0f + 0.5f);
+
+    switch ((int)h_prime % 6) {
+        case 0: r = c255; g = x255; b = 0;    break;
+        case 1: r = x255; g = c255; b = 0;    break;
+        case 2: r = 0;    g = c255; b = x255;  break;
+        case 3: r = 0;    g = x255; b = c255;  break;
+        case 4: r = x255; g = 0;    b = c255;  break;
+        case 5: r = c255; g = 0;    b = x255;  break;
+        default: r = 0; g = 0; b = 0; break;
+    }
+
+    /* 4. 组装为 0x00RRGGBB 格式 */
+    uint32_t rgb_color = ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
+
+    /* 实际 MCU 硬件环境 */
+    uint8_t target_node_id = 1;
+
+    /* 5. 先开启补光灯主电源开关 (PARAM_IDX_LIGHT_MAIN_POWER = 1.0f) */
+    bool power_sent = can_service_send_control(target_node_id, PARAM_IDX_LIGHT_MAIN_POWER, 1.0f);
+    if (!power_sent) {
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send Light main power ON command!");
+        return;
+    }
+
+    /* 6. 发送颜色 (PARAM_IDX_LIGHT_COLOR_RGB)，将 uint32_t 强转为 float 传递 */
+    bool color_sent = can_service_send_control(target_node_id, PARAM_IDX_LIGHT_COLOR_RGB, (float)rgb_color);
+
+    if (!color_sent) {
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send Light color RGB control command!");
+    } else {
+        LV_LOG_USER("CUSTOM_UI: Light color sent: Hue=%ld, RGB=0x%06lX (R=%d, G=%d, B=%d)",
+                    (long)hue, (unsigned long)rgb_color, r, g, b);
+    }
+}

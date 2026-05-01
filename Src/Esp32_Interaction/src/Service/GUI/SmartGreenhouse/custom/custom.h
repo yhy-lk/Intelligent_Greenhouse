@@ -17,14 +17,8 @@ void custom_ui_handle_humidifier_switch_value_changed_event(lv_event_t * e);
 void custom_ui_handle_ventilation_fan_speed_slider_value_changed_event(lv_event_t * e);
 
 void custom_ui_send_manual_control_mode_command_on_screen_enter(void);
-
-
-
-
-
-
-
-
+void custom_ui_handle_light_brightness_slider_value_changed_event(lv_event_t * e);
+void custom_ui_handle_light_color_slider_value_changed_event(lv_event_t * e);
 #ifdef __cplusplus
 }
 #endif
