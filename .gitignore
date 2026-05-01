@@ -2,9 +2,9 @@
 Document/
 
 # PlatformIO 生成文件及缓存
-Src/ESP32S3_Arduino/.pio/
-Src/ESP32S3_Arduino/.vscode/
-Src/ESP32S3_Arduino/src/Config/secrets.h
+Src/Esp32_Interaction/.pio/
+Src/Esp32_Interaction/.vscode/
+Src/Esp32_Interaction/src/Config/secrets.h
 
 # Rust 生成文件及依赖锁
 Src/Stm32_Control/target/
