@@ -72,16 +72,10 @@ use shared::{
 };
 use static_cell::StaticCell;
 use embassy_sync::signal::Signal;
-use embassy_sync::channel::Channel;
-use embassy_sync::blocking_mutex::raw::{ThreadModeRawMutex};
-use smart_leds::RGB8;
 
 pub static I2C1_BUS: StaticCellAsyncMasterI2cBus = StaticCell::new();
 pub static I2C2_BUS: StaticCellBlockingMasterI2cBus = StaticCell::new();
 pub static LED_TOGGLE_COUNT: LedSingal = Signal::new();
-static FILL_LIGHT_CHANNEL: Channel<ThreadModeRawMutex, RGB8, 10> = Channel::new();
-
-
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
     // 1. 初始化 MCU (BSW 内部细节)
@@ -148,7 +142,7 @@ async fn main(spawner: Spawner) {
     let bh1750_i2c = shared_bus::blocking::i2c::I2cDevice::new(i2c2_bus);
     spawner.spawn(bh1750::bh1750_task(bh1750_i2c)).unwrap();
 
-    spawner.spawn(dispatcher::dispatcher_task(FILL_LIGHT_CHANNEL.sender())).unwrap();
+    spawner.spawn(dispatcher::dispatcher_task()).unwrap();
 
 
     let mut adc_config = embassy_stm32::adc::AdcConfig::default();

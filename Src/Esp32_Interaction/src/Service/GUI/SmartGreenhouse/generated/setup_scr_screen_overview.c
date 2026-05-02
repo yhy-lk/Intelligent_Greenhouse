@@ -203,9 +203,9 @@ void setup_scr_screen_overview(lv_ui *ui)
     lv_obj_set_size(ui->screen_overview_arc_temperature_value, 80, 80);
     lv_obj_remove_flag(ui->screen_overview_arc_temperature_value, LV_OBJ_FLAG_CLICKABLE);
     lv_arc_set_mode(ui->screen_overview_arc_temperature_value, LV_ARC_MODE_NORMAL);
-    lv_arc_set_range(ui->screen_overview_arc_temperature_value, 0, 100);
+    lv_arc_set_range(ui->screen_overview_arc_temperature_value, 0, 50);
     lv_arc_set_bg_angles(ui->screen_overview_arc_temperature_value, 135, 45);
-    lv_arc_set_value(ui->screen_overview_arc_temperature_value, 70);
+    lv_arc_set_value(ui->screen_overview_arc_temperature_value, 25);
     lv_arc_set_rotation(ui->screen_overview_arc_temperature_value, 0);
 
     //Write style for screen_overview_arc_temperature_value, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -242,7 +242,7 @@ void setup_scr_screen_overview(lv_ui *ui)
     lv_arc_set_mode(ui->screen_overview_arc_humidity_value, LV_ARC_MODE_NORMAL);
     lv_arc_set_range(ui->screen_overview_arc_humidity_value, 0, 100);
     lv_arc_set_bg_angles(ui->screen_overview_arc_humidity_value, 135, 45);
-    lv_arc_set_value(ui->screen_overview_arc_humidity_value, 70);
+    lv_arc_set_value(ui->screen_overview_arc_humidity_value, 50);
     lv_arc_set_rotation(ui->screen_overview_arc_humidity_value, 0);
 
     //Write style for screen_overview_arc_humidity_value, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.
@@ -344,7 +344,7 @@ void setup_scr_screen_overview(lv_ui *ui)
     ui->screen_overview_label_humidity_value = lv_label_create(ui->screen_overview);
     lv_obj_set_pos(ui->screen_overview_label_humidity_value, 133, 50);
     lv_obj_set_size(ui->screen_overview_label_humidity_value, 80, 20);
-    lv_label_set_text(ui->screen_overview_label_humidity_value, "60%");
+    lv_label_set_text(ui->screen_overview_label_humidity_value, "50%");
     lv_label_set_long_mode(ui->screen_overview_label_humidity_value, LV_LABEL_LONG_WRAP);
 
     //Write style for screen_overview_label_humidity_value, Part: LV_PART_MAIN, State: LV_STATE_DEFAULT.

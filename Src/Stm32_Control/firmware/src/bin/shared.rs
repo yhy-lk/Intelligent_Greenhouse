@@ -41,8 +41,6 @@ pub type LedSingal = Signal<ThreadModeRawMutex, u32>;
 
 // ================================ WS2812 ================================
 pub type Ws2812 = bsw::ws2812::Ws2812<'static, peripherals::TIM4, peripherals::DMA1_CH6>;
-// pub type Ws2812Receiver = embassy_sync::channel::Receiver<'static, embassy_sync::blocking_mutex::raw::ThreadModeRawMutex, smart_leds::RGB8, 10>;
-pub type Ws2812Sender = embassy_sync::channel::Sender<'static, embassy_sync::blocking_mutex::raw::ThreadModeRawMutex, smart_leds::RGB8, 10>;
 
 use bsw::protocol::{CurrentValues, TargetValues, SystemState};
 

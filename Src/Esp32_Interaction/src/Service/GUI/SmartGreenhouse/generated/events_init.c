@@ -452,6 +452,11 @@ static void screen_auto_mode_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     switch (code) {
+    case LV_EVENT_SCREEN_LOAD_START:
+    {
+        custom_ui_send_auto_control_mode_command_on_screen_enter();
+        break;
+    }
     case LV_EVENT_GESTURE:
     {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
@@ -494,7 +499,7 @@ static void screen_auto_mode_slider_temperature_range_event_handler (lv_event_t 
         sprintf(right_str, "%d°C", right_val);
         lv_label_set_text(guider_ui.screen_auto_mode_label_temperature_right_value, right_str);
 
-
+        custom_ui_handle_auto_mode_temperature_range_slider_value_changed_event(e);
 
 
         break;
@@ -522,7 +527,7 @@ static void screen_auto_mode_slider_humidity_range_event_handler (lv_event_t *e)
 
 
 
-
+        custom_ui_handle_auto_mode_humidity_range_slider_value_changed_event(e);
         break;
     }
     default:
@@ -547,7 +552,7 @@ static void screen_auto_mode_slider_soil_moisture_range_event_handler (lv_event_
         lv_label_set_text(guider_ui.screen_auto_mode_label_soil_moisture_right_value, right_str);
 
 
-
+        custom_ui_handle_auto_mode_soil_moisture_range_slider_value_changed_event(e);
 
         break;
     }
@@ -573,7 +578,7 @@ static void screen_auto_mode_slider_light_intensity_range_event_handler (lv_even
         lv_label_set_text(guider_ui.screen_auto_mode_label_light_intensity_right_value, right_str);
 
 
-
+        custom_ui_handle_auto_mode_light_intensity_range_slider_value_changed_event(e);
 
         break;
     }

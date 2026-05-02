@@ -308,6 +308,163 @@ void custom_ui_send_manual_control_mode_command_on_screen_enter(void)
 }
 
 /**
+ * @brief 屏幕进入时通过 CAN 总线发送自动控制模式指令
+ *
+ * 当自动模式屏幕加载/导入时自动调用此函数，无条件地向目标节点发送自动模式 (1.0f) 指令，
+ * 将系统切换为自动控制模式。
+ */
+void custom_ui_send_auto_control_mode_command_on_screen_enter(void)
+{
+    /* 实际 MCU 硬件环境 */
+    uint8_t target_node_id = 1;
+
+    /* 自动模式对应 PARAM_IDX_CONTROL_MODE = 1 */
+    bool req_sent = can_service_send_control(target_node_id, PARAM_IDX_CONTROL_MODE, 1.0f);
+
+    if (!req_sent) {
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send auto control mode command on screen enter!");
+    } else {
+        LV_LOG_USER("CUSTOM_UI: Auto control mode command sent on screen enter.");
+    }
+}
+
+/**
+ * @brief 处理自动模式下温度范围双头滑条值变化的 LVGL 事件
+ *
+ * 读取双头滑条的左右两端值，计算平均值作为目标温度，
+ * 然后通过 CAN 总线发送目标温度设定指令。
+ *
+ * CAN 协议:
+ *   - PARAM_IDX_TEMPERATURE (0x30) = 目标温度 (°C, 缩放因子 ×100)
+ *
+ * @param e 指向 LVGL 事件对象的指针
+ */
+void custom_ui_handle_auto_mode_temperature_range_slider_value_changed_event(lv_event_t * e)
+{
+    /* 1. 读取双头滑条的左值和右值 */
+    int left_val = lv_slider_get_left_value(guider_ui.screen_auto_mode_slider_temperature_range);
+    int right_val = lv_slider_get_value(guider_ui.screen_auto_mode_slider_temperature_range);
+
+    /* 2. 计算平均值作为目标温度 */
+    float target_temperature = (float)(left_val + right_val) / 2.0f;
+
+    /* 实际 MCU 硬件环境 */
+    uint8_t target_node_id = 1;
+
+    /* 3. 通过 CAN 总线发送目标温度 */
+    bool req_sent = can_service_send_control(target_node_id, PARAM_IDX_TEMPERATURE, target_temperature);
+
+    if (!req_sent) {
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send target temperature control command!");
+    } else {
+        LV_LOG_USER("CUSTOM_UI: Target temperature sent: left=%d, right=%d, avg=%.1f°C",
+                    left_val, right_val, target_temperature);
+    }
+}
+
+/**
+ * @brief 处理自动模式下空气湿度范围双头滑条值变化的 LVGL 事件
+ *
+ * 读取双头滑条的左右两端值，计算平均值作为目标空气湿度，
+ * 然后通过 CAN 总线发送目标空气湿度设定指令。
+ *
+ * CAN 协议:
+ *   - PARAM_IDX_HUMIDITY_AIR (0x31) = 目标空气湿度 (%, 缩放因子 ×100)
+ *
+ * @param e 指向 LVGL 事件对象的指针
+ */
+void custom_ui_handle_auto_mode_humidity_range_slider_value_changed_event(lv_event_t * e)
+{
+    /* 1. 读取双头滑条的左值和右值 */
+    int left_val = lv_slider_get_left_value(guider_ui.screen_auto_mode_slider_humidity_range);
+    int right_val = lv_slider_get_value(guider_ui.screen_auto_mode_slider_humidity_range);
+
+    /* 2. 计算平均值作为目标空气湿度 */
+    float target_humidity = (float)(left_val + right_val) / 2.0f;
+
+    /* 实际 MCU 硬件环境 */
+    uint8_t target_node_id = 1;
+
+    /* 3. 通过 CAN 总线发送目标空气湿度 */
+    bool req_sent = can_service_send_control(target_node_id, PARAM_IDX_HUMIDITY_AIR, target_humidity);
+
+    if (!req_sent) {
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send target air humidity control command!");
+    } else {
+        LV_LOG_USER("CUSTOM_UI: Target air humidity sent: left=%d, right=%d, avg=%.1f%%",
+                    left_val, right_val, target_humidity);
+    }
+}
+
+/**
+ * @brief 处理自动模式下土壤湿度范围双头滑条值变化的 LVGL 事件
+ *
+ * 读取双头滑条的左右两端值，计算平均值作为目标土壤湿度，
+ * 然后通过 CAN 总线发送目标土壤湿度设定指令。
+ *
+ * CAN 协议:
+ *   - PARAM_IDX_HUMIDITY_SOIL (0x32) = 目标土壤湿度 (%, 缩放因子 ×100)
+ *
+ * @param e 指向 LVGL 事件对象的指针
+ */
+void custom_ui_handle_auto_mode_soil_moisture_range_slider_value_changed_event(lv_event_t * e)
+{
+    /* 1. 读取双头滑条的左值和右值 */
+    int left_val = lv_slider_get_left_value(guider_ui.screen_auto_mode_slider_soil_moisture_range);
+    int right_val = lv_slider_get_value(guider_ui.screen_auto_mode_slider_soil_moisture_range);
+
+    /* 2. 计算平均值作为目标土壤湿度 */
+    float target_soil_moisture = (float)(left_val + right_val) / 2.0f;
+
+    /* 实际 MCU 硬件环境 */
+    uint8_t target_node_id = 1;
+
+    /* 3. 通过 CAN 总线发送目标土壤湿度 */
+    bool req_sent = can_service_send_control(target_node_id, PARAM_IDX_HUMIDITY_SOIL, target_soil_moisture);
+
+    if (!req_sent) {
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send target soil moisture control command!");
+    } else {
+        LV_LOG_USER("CUSTOM_UI: Target soil moisture sent: left=%d, right=%d, avg=%.1f%%",
+                    left_val, right_val, target_soil_moisture);
+    }
+}
+
+/**
+ * @brief 处理自动模式下光照强度范围双头滑条值变化的 LVGL 事件
+ *
+ * 读取双头滑条的左右两端值，计算平均值作为目标光照强度，
+ * 然后通过 CAN 总线发送目标光照强度设定指令。
+ *
+ * CAN 协议:
+ *   - PARAM_IDX_LIGHT_INTENSITY (0x33) = 目标光照强度 (Lux, 缩放因子 ×1)
+ *
+ * @param e 指向 LVGL 事件对象的指针
+ */
+void custom_ui_handle_auto_mode_light_intensity_range_slider_value_changed_event(lv_event_t * e)
+{
+    /* 1. 读取双头滑条的左值和右值 */
+    int left_val = lv_slider_get_left_value(guider_ui.screen_auto_mode_slider_light_intensity_range);
+    int right_val = lv_slider_get_value(guider_ui.screen_auto_mode_slider_light_intensity_range);
+
+    /* 2. 计算平均值作为目标光照强度 */
+    float target_light_intensity = (float)(left_val + right_val) / 2.0f;
+
+    /* 实际 MCU 硬件环境 */
+    uint8_t target_node_id = 1;
+
+    /* 3. 通过 CAN 总线发送目标光照强度 */
+    bool req_sent = can_service_send_control(target_node_id, PARAM_IDX_LIGHT_INTENSITY, target_light_intensity);
+
+    if (!req_sent) {
+        LV_LOG_ERROR("CUSTOM_UI: Failed to send target light intensity control command!");
+    } else {
+        LV_LOG_USER("CUSTOM_UI: Target light intensity sent: left=%d, right=%d, avg=%.1f Lux",
+                    left_val, right_val, target_light_intensity);
+    }
+}
+
+/**
  * @brief 处理补光灯亮度滑块值变化的 LVGL 事件
  *
  * 与通风风扇滑块类似的双层控制逻辑：
