@@ -114,8 +114,15 @@ void custom_update_screen_overview(void)
 
     // --- 温度 ---
     if (temp != INVALID_VALUE) {
-        snprintf(buf, sizeof(buf), "%.2f %s", temp / 100.0f, TEMP_UNIT);
+        float temp_val = temp / 100.0f;
+        snprintf(buf, sizeof(buf), "%.2f %s", temp, TEMP_UNIT);
         lv_label_set_text(guider_ui.screen_overview_label_temperature_value, buf);
+        // 更新温度 Arc 控件 (范围 0-50，正整数)
+        int32_t temp_int = (int32_t)(temp + 0.5f); // 四舍五入
+        if (temp_int < 0) temp_int = 0;
+        if (temp_int > 50) temp_int = 50;
+        lv_arc_set_range(guider_ui.screen_overview_arc_temperature_value, 0, 50);
+        lv_arc_set_value(guider_ui.screen_overview_arc_temperature_value, temp_int);
     } else {
         ESP_LOGW(TAG, "Temperature value is invalid.");
         lv_label_set_text(guider_ui.screen_overview_label_temperature_value, "--");
@@ -123,8 +130,14 @@ void custom_update_screen_overview(void)
 
     // --- 空气湿度 ---
     if (humidity != INVALID_VALUE) {
-        snprintf(buf, sizeof(buf), "%.2f %s", humidity / 100.0f, HUMIDITY_UNIT);
+        float humidity_val = humidity / 100.0f;
+        snprintf(buf, sizeof(buf), "%.2f %s", humidity, HUMIDITY_UNIT);
         lv_label_set_text(guider_ui.screen_overview_label_humidity_value, buf);
+        // 更新湿度 Arc 控件 (范围 0-100，正整数)
+        int32_t humidity_int = (int32_t)(humidity + 0.5f); // 四舍五入
+        if (humidity_int < 0) humidity_int = 0;
+        if (humidity_int > 100) humidity_int = 100;
+        lv_arc_set_value(guider_ui.screen_overview_arc_humidity_value, humidity_int);
     } else {
         ESP_LOGW(TAG, "Air humidity value is invalid.");
         lv_label_set_text(guider_ui.screen_overview_label_humidity_value, "--");
@@ -132,8 +145,14 @@ void custom_update_screen_overview(void)
 
     // --- 土壤湿度 ---
     if (soil != INVALID_VALUE) {
-        snprintf(buf, sizeof(buf), "%.2f %s", soil / 100.0f, SOIL_UNIT);
+        float soil_val = soil / 100.0f;
+        snprintf(buf, sizeof(buf), "%.2f %s", soil, SOIL_UNIT);
         lv_label_set_text(guider_ui.screen_overview_label_soil_station_value, buf);
+        // 更新土壤湿度 Bar 控件 (范围 0-100)
+        int32_t soil_int = (int32_t)(soil + 0.5f); // 四舍五入
+        if (soil_int < 0) soil_int = 0;
+        if (soil_int > 100) soil_int = 100;
+        lv_bar_set_value(guider_ui.screen_overview_bar_soil_station, soil_int, LV_ANIM_ON);
     } else {
         ESP_LOGW(TAG, "Soil humidity value is invalid.");
         lv_label_set_text(guider_ui.screen_overview_label_soil_station_value, "--");
