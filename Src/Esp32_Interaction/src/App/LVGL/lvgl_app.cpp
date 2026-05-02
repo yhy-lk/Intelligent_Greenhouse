@@ -73,12 +73,13 @@ bool init() {
     }
 
     // 4. 创建 UI 定时刷新任务 (重要：UI 刷新通常需要较高优先级以保证流畅度)
+    // 这里如果只给4096字节会导致栈溢出
     ret = xTaskCreate(
         lvgl_update_task,
         "ui_update_task",
-        TASK_STACK_SIZE_SMALL,
+        TASK_STACK_SIZE_MEDIUM,
         nullptr,
-        TASK_PRIORITY_LOW, // 略低于 CAN 任务，但高于普通逻辑
+        TASK_PRIORITY_NORMAL, // 略低于 CAN 任务，但高于普通逻辑
         nullptr
     );
 
