@@ -38,5 +38,13 @@ void setup() {
 void loop() {
     // 所有的逻辑都在 FreeRTOS 任务中了
     // loop 任务现在可以作为监控任务，或者干脆空转/删除
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    ESP_LOGI("MEM", "Free heap: %d, Min free heap: %d", 
+         esp_get_free_heap_size(), esp_get_minimum_free_heap_size());
+    ESP_LOGI("MEM", "Free internal: %d, Free PSRAM: %d",
+            heap_caps_get_free_size(MALLOC_CAP_INTERNAL),
+            heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
+    ESP_LOGI("MEM", "VoiceTask stack high water mark: %d bytes",
+         uxTaskGetStackHighWaterMark(NULL) * 4);
+
+    vTaskDelay(pdMS_TO_TICKS(60 * 1000));
 }

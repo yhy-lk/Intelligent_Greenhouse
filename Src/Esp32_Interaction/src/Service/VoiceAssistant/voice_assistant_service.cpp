@@ -193,7 +193,7 @@ void VoiceAssistantService::state_machine_tick() {
             ESP_LOGI(TAG, "侦测到音频真实采样率: %d Hz", real_sample_rate);
 
             // 动态切换 I2S 硬件时钟！ (假设你底层使用的是 I2S_NUM_0)
-            i2s_set_sample_rates(I2S_NUM_0, real_sample_rate);
+            i2s_set_sample_rates(I2S_PORT_NUM, real_sample_rate);
 
             int16_t* pcm_start = record_buffer + 22; // 跳过 WAV 44 字节头
             int pcm_samples_to_play = (downloaded_bytes_count - 44) / 2;
@@ -212,7 +212,7 @@ void VoiceAssistantService::state_machine_tick() {
             }
             
             // 🚀 播放完毕后，极其重要的一步：把采样率切回 16000，否则下次录音麦克风会变“快进”！
-            i2s_set_sample_rates(I2S_NUM_0, 16000);
+            i2s_set_sample_rates(I2S_PORT_NUM, 16000);
             
             vTaskDelay(pdMS_TO_TICKS(1500)); 
             current_state = VoiceState::WAITING;

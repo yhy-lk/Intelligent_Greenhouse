@@ -12,11 +12,11 @@
 /*====================
    2. 内存管理器设置
  ====================*/
-/* LVGL 9 支持直接使用标准 C 库的 malloc (ESP32 的堆栈管理器非常强大，直接交由它管理) */
-#define LV_USE_STDLIB_MALLOC    LV_STDLIB_BUILTIN
-#define LV_USE_STDLIB_STRING    LV_STDLIB_BUILTIN
-#define LV_USE_STDLIB_SPRINTF   LV_STDLIB_BUILTIN
-#define LV_MEM_SIZE (64 * 1024U) /* 给 LVGL 分配 64KB 的专属内存池 */
+/* 使用标准 C 库的 malloc/free，由 ESP32 堆管理器统一管理内存，
+ * 不再使用 LVGL 内置的 64KB 固定内存池，避免内存碎片和浪费 */
+#define LV_USE_STDLIB_MALLOC    LV_STDLIB_STDLIB
+#define LV_USE_STDLIB_STRING    LV_STDLIB_STDLIB
+#define LV_USE_STDLIB_SPRINTF   LV_STDLIB_STDLIB
 
 /*====================
    3. 调试与性能监控

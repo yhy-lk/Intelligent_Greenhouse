@@ -9,6 +9,8 @@
 #include "baidu_api.h"
 #include "deepseek_api.h" // 🚀 引入 DeepSeek 大脑
 
+#include "app_config.h" // 统一使用全局配置文件
+
 enum class VoiceState {
     WAITING,
     RECORDING,
@@ -24,7 +26,7 @@ public:
     ~VoiceAssistantService();
 
     bool init();
-    void start_task(UBaseType_t priority = 5, uint32_t stack_size = 8192);
+    void start_task(UBaseType_t priority = TASK_PRIORITY_NORMAL, uint32_t stack_size = TASK_STACK_SIZE_MEDIUM);
 
 private:
     static void task_handler(void* pvParameters);
