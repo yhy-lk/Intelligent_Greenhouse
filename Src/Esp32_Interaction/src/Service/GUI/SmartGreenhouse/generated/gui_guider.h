@@ -170,6 +170,7 @@ typedef struct
 	lv_obj_t *screen_ai_pilot_mode;
 	bool screen_ai_pilot_mode_del;
 	lv_obj_t *screen_ai_pilot_mode_img_1;
+	lv_obj_t *screen_ai_pilot_mode_label_1;
 }lv_ui;
 
 typedef void (*ui_setup_scr_t)(lv_ui * ui);
@@ -239,6 +240,7 @@ LV_FONT_DECLARE(lv_font_montserratMedium_15)
 LV_FONT_DECLARE(lv_font_montserratMedium_10)
 LV_FONT_DECLARE(lv_font_montserratMedium_8)
 LV_FONT_DECLARE(lv_font_montserratMedium_25)
+LV_FONT_DECLARE(lv_font_montserratMedium_18)
 
 
 #ifdef __cplusplus

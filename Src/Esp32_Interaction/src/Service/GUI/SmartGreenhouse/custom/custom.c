@@ -14,9 +14,12 @@
 #include <math.h>
 #include "lvgl.h"
 #include "custom.h"
+#include "gui_guider.h"
+#ifndef _WIN32
 #include "sensor_state.h"
 #include "can_network_service.h"
 #include "esp_log.h"       // 引入 ESP-IDF 的日志库
+#endif
 
 // 引入全局 UI 结构体
 extern lv_ui guider_ui;
@@ -54,8 +57,10 @@ static const char *TAG = "CUSTOM_UI";
 void custom_init(lv_ui *ui)
 {
     /* Add your codes here */
-    ESP_LOGI(TAG, "Custom UI components initialized");
+    // ESP_LOGI(TAG, "Custom UI components initialized");
 }
+
+#ifndef _WIN32
 
 /**
  * @brief 更新总览界面的传感器数据
@@ -570,3 +575,5 @@ void custom_ui_handle_light_color_slider_value_changed_event(lv_event_t * e)
                     (long)hue, (unsigned long)rgb_color, r, g, b);
     }
 }
+
+#endif

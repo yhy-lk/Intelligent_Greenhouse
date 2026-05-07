@@ -1,1 +1,1 @@
-GEN_CSRCS += lv_font_montserratMedium_12.c lv_font_Alatsi_Regular_22.c lv_font_montserratMedium_16.c lv_font_montserratMedium_15.c lv_font_montserratMedium_10.c lv_font_montserratMedium_8.c lv_font_montserratMedium_25.c
+GEN_CSRCS += lv_font_montserratMedium_12.c lv_font_Alatsi_Regular_22.c lv_font_montserratMedium_16.c lv_font_montserratMedium_15.c lv_font_montserratMedium_10.c lv_font_montserratMedium_8.c lv_font_montserratMedium_25.c lv_font_montserratMedium_18.c
