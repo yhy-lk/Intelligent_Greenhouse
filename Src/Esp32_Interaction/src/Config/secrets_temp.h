@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "../Service/WifiService/wifi_service.h"
+#include "wifi_core_types.h"
 
 // ============================================================
 // Wi-Fi 配置（多组凭证，自动逐个尝试连接）

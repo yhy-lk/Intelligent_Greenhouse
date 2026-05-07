@@ -19,9 +19,9 @@ const std::vector<WifiCredential>& WifiService::getCredentials() {
 }
 
 bool WifiService::tryConnect(const WifiCredential& cred, unsigned long timeout_ms) {
-    ESP_LOGI(TAG, "Trying Wi-Fi: %s", cred.ssid.c_str());
+    ESP_LOGI(TAG, "Trying Wi-Fi: %s", cred.ssid);
 
-    WiFi.begin(cred.ssid.c_str(), cred.password.c_str());
+    WiFi.begin(cred.ssid, cred.password);
 
     unsigned long startTime = millis();
     while (WiFi.status() != WL_CONNECTED && (millis() - startTime) < timeout_ms) {
@@ -38,11 +38,11 @@ bool WifiService::tryConnect(const WifiCredential& cred, unsigned long timeout_m
         }
         
         ESP_LOGI(TAG, "Wi-Fi Connected! SSID: %s, IP: %s",
-                 cred.ssid.c_str(),
+                 cred.ssid,
                  WiFi.localIP().toString().c_str());
         return true;
     } else {
-        ESP_LOGW(TAG, "Wi-Fi connection failed for: %s", cred.ssid.c_str());
+        ESP_LOGW(TAG, "Wi-Fi connection failed for: %s", cred.ssid);
         WiFi.disconnect();
         return false;
     }

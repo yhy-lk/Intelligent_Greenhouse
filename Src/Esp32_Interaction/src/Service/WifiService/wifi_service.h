@@ -7,14 +7,7 @@
 #include <utility>
 
 #include "esp_log.h"
-
-/**
- * @brief WiFi 凭证结构体
- */
-struct WifiCredential {
-    std::string ssid;
-    std::string password;
-};
+#include "../../Config/wifi_core_types.h"
 
 /**
  * @brief WiFi 自动连接服务
