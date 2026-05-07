@@ -48,7 +48,7 @@ private:
     std::string current_text;
 
     static const int SAMPLE_RATE = 16000;
-    static const int RECORD_SECONDS_MAX = 10;
+    static const int RECORD_SECONDS_MAX = 30;
     static const int MAX_PSRAM_SAMPLES = SAMPLE_RATE * RECORD_SECONDS_MAX;
     static const int MAX_PSRAM_BYTES = MAX_PSRAM_SAMPLES * sizeof(int16_t);
     static const int FRAME_SIZE = 256;
