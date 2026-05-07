@@ -15,7 +15,9 @@
 #include "freemaster_client.h"
 #endif
 
+#ifndef _WIN32
 #include "custom.h"
+#endif
 // #include "custom.h"
 
 
@@ -301,7 +303,11 @@ static void screen_manual_mode_event_handler (lv_event_t *e)
     switch (code) {
     case LV_EVENT_SCREEN_LOAD_START:
     {
+#ifndef _WIN32
         custom_ui_send_manual_control_mode_command_on_screen_enter();
+#endif
+
+
         break;
     }
     case LV_EVENT_GESTURE:
@@ -338,8 +344,9 @@ static void screen_manual_mode_sw_awning_event_handler (lv_event_t *e)
     {
         lv_obj_t * status_obj = lv_event_get_target(e);
         int status = lv_obj_has_state(status_obj, LV_STATE_CHECKED) ? true : false;
+#ifndef _WIN32
         custom_ui_handle_awning_sunshade_motor_switch_value_changed_event(e);
-
+#endif
 
         break;
     }
@@ -356,7 +363,9 @@ static void screen_manual_mode_sw_water_pump_event_handler (lv_event_t *e)
     {
         lv_obj_t * status_obj = lv_event_get_target(e);
         int status = lv_obj_has_state(status_obj, LV_STATE_CHECKED) ? true : false;
+#ifndef _WIN32
         custom_ui_handle_water_pump_switch_value_changed_event(e);
+#endif
         break;
     }
     default:
@@ -372,7 +381,9 @@ static void screen_manual_mode_sw_humidifier_event_handler (lv_event_t *e)
     {
         lv_obj_t * status_obj = lv_event_get_target(e);
         int status = lv_obj_has_state(status_obj, LV_STATE_CHECKED) ? true : false;
+#ifndef _WIN32
         custom_ui_handle_humidifier_switch_value_changed_event(e);
+#endif
         break;
     }
     default:
@@ -394,7 +405,9 @@ static void screen_manual_mode_slider_ventilation_fan_speed_event_handler (lv_ev
 
         lv_label_set_text(guider_ui.screen_manual_mode_label_ventilation_fan_speed_value, str);
 
+#ifndef _WIN32
         custom_ui_handle_ventilation_fan_speed_slider_value_changed_event(e);
+#endif
         break;
     }
     default:
@@ -415,7 +428,9 @@ static void screen_manual_mode_slider_brightness_value_event_handler (lv_event_t
         sprintf(str, "%d", val);
 
         lv_label_set_text(guider_ui.screen_manual_mode_label_brightness_value, str);
+#ifndef _WIN32
         custom_ui_handle_light_brightness_slider_value_changed_event(e);
+#endif
         break;
     }
     default:
@@ -429,7 +444,9 @@ static void screen_manual_mode_slider_color_adjustment_event_handler (lv_event_t
     switch (code) {
     case LV_EVENT_VALUE_CHANGED:
     {
+#ifndef _WIN32
         custom_ui_handle_light_color_slider_value_changed_event(e);
+#endif
         break;
     }
     default:
@@ -454,7 +471,9 @@ static void screen_auto_mode_event_handler (lv_event_t *e)
     switch (code) {
     case LV_EVENT_SCREEN_LOAD_START:
     {
+#ifndef _WIN32
         custom_ui_send_auto_control_mode_command_on_screen_enter();
+#endif
         break;
     }
     case LV_EVENT_GESTURE:
@@ -498,8 +517,9 @@ static void screen_auto_mode_slider_temperature_range_event_handler (lv_event_t 
         char right_str[32];
         sprintf(right_str, "%d°C", right_val);
         lv_label_set_text(guider_ui.screen_auto_mode_label_temperature_right_value, right_str);
-
+#ifndef _WIN32
         custom_ui_handle_auto_mode_temperature_range_slider_value_changed_event(e);
+#endif
 
 
         break;
@@ -526,8 +546,10 @@ static void screen_auto_mode_slider_humidity_range_event_handler (lv_event_t *e)
         lv_label_set_text(guider_ui.screen_auto_mode_label_humidity_right_value, right_str);
 
 
-
+#ifndef _WIN32
         custom_ui_handle_auto_mode_humidity_range_slider_value_changed_event(e);
+#endif
+
         break;
     }
     default:
@@ -552,7 +574,9 @@ static void screen_auto_mode_slider_soil_moisture_range_event_handler (lv_event_
         lv_label_set_text(guider_ui.screen_auto_mode_label_soil_moisture_right_value, right_str);
 
 
+#ifndef _WIN32
         custom_ui_handle_auto_mode_soil_moisture_range_slider_value_changed_event(e);
+#endif
 
         break;
     }
@@ -578,7 +602,9 @@ static void screen_auto_mode_slider_light_intensity_range_event_handler (lv_even
         lv_label_set_text(guider_ui.screen_auto_mode_label_light_intensity_right_value, right_str);
 
 
+#ifndef _WIN32
         custom_ui_handle_auto_mode_light_intensity_range_slider_value_changed_event(e);
+#endif
 
         break;
     }

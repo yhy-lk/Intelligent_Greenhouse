@@ -4,6 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#ifndef _WIN32
 
 #include "gui_guider.h"
 
@@ -24,6 +25,10 @@ void custom_ui_handle_auto_mode_soil_moisture_range_slider_value_changed_event(l
 void custom_ui_handle_auto_mode_light_intensity_range_slider_value_changed_event(lv_event_t * e);
 void custom_ui_handle_light_brightness_slider_value_changed_event(lv_event_t * e);
 void custom_ui_handle_light_color_slider_value_changed_event(lv_event_t * e);
+
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif
