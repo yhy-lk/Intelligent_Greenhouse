@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include "../../Config/secrets.h"
+#include "../WifiService/wifi_service.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -21,18 +22,6 @@ DeepSeekApi::DeepSeekApi() {
     http_client.set_debug_mode(true); 
 }
 
-bool DeepSeekApi::connect_to_wifi() {
-    ESP_LOGI(TAG, "Connecting to Wi-Fi %s...", WIFI_SSID);
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    
-    unsigned long startTime = millis();
-    while (WiFi.status() != WL_CONNECTED && millis() - startTime < 10000) {
-        vTaskDelay(pdMS_TO_TICKS(500)); // 替换 delay
-        ESP_LOGD(TAG, "Waiting for Wi-Fi connection..."); // 避免使用点号刷屏，改用 Debug 级别输出
-    }
-    return WiFi.status() == WL_CONNECTED;
-}
-
 bool DeepSeekApi::is_connected() {
     return WiFi.status() == WL_CONNECTED;
 }
@@ -44,7 +33,7 @@ void DeepSeekApi::clear_history() {
 
 std::string DeepSeekApi::ask(const std::string& question, const DeepSeekConfig& config) {
     if (!is_connected()) {
-        if (!connect_to_wifi()) return "Error: No Wi-Fi";
+        if (!WifiService::getInstance().connect()) return "Error: No Wi-Fi";
     }
     
     ESP_LOGI(TAG, "Free SRAM: %u bytes", ESP.getFreeHeap());

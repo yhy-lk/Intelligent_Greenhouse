@@ -26,6 +26,9 @@ void custom_ui_handle_auto_mode_light_intensity_range_slider_value_changed_event
 void custom_ui_handle_light_brightness_slider_value_changed_event(lv_event_t * e);
 void custom_ui_handle_light_color_slider_value_changed_event(lv_event_t * e);
 
+void custom_ui_start_voice_assistant_on_screen_enter(void);
+void custom_ui_stop_voice_assistant_on_screen_exit(void);
+
 #endif
 
 

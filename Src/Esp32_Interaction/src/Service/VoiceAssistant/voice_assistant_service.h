@@ -27,6 +27,7 @@ public:
 
     bool init();
     void start_task(UBaseType_t priority = TASK_PRIORITY_NORMAL, uint32_t stack_size = TASK_STACK_SIZE_MEDIUM);
+    void stop();  // 停止语音助手后台任务并释放资源
 
 private:
     static void task_handler(void* pvParameters);
@@ -38,6 +39,8 @@ private:
     DeepSeekApi deepseek_api; // 🚀 实例化大脑
 
     VoiceState current_state;
+    volatile bool task_running;       // 任务运行标志，用于安全停止任务
+    TaskHandle_t task_handle;         // FreeRTOS 任务句柄，用于删除任务
     
     int16_t* record_buffer;
     int recorded_samples_count;

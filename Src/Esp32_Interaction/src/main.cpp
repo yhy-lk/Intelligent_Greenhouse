@@ -14,7 +14,9 @@ static const char* TAG = "MAIN";
 void setup() {
     // 虽然改用了 ESP_LOG，但在某些 ESP32 环境下仍需 Serial.begin 初始化串口底层
     Serial.begin(115200);
-    delay(10000);
+    delay(20);
+    
+
     
     ESP_LOGI(TAG, "System Booting...");
 

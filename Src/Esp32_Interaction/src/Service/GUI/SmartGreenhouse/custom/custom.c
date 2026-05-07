@@ -18,6 +18,7 @@
 #ifndef _WIN32
 #include "sensor_state.h"
 #include "can_network_service.h"
+#include "voice_assistant_bridge.h"  // 引入语音助手桥接接口
 #include "esp_log.h"       // 引入 ESP-IDF 的日志库
 #endif
 
@@ -574,6 +575,39 @@ void custom_ui_handle_light_color_slider_value_changed_event(lv_event_t * e)
         LV_LOG_USER("CUSTOM_UI: Light color sent: Hue=%ld, RGB=0x%06lX (R=%d, G=%d, B=%d)",
                     (long)hue, (unsigned long)rgb_color, r, g, b);
     }
+}
+
+/**
+ * @brief 进入 AI 驾驶舱屏幕时启动语音助手服务
+ *
+ * 当 screen_ai_pilot_mode 屏幕加载时调用此函数，
+ * 初始化音频引擎（I2S、PSRAM、百度 API）并在 Core 1 上
+ * 创建后台语音任务，开始监听用户语音。
+ */
+void custom_ui_start_voice_assistant_on_screen_enter(void)
+{
+    ESP_LOGI(TAG, "AI Pilot Mode: Starting Voice Assistant...");
+
+    if (voice_assistant_start()) {
+        ESP_LOGI(TAG, "AI Pilot Mode: Voice Assistant started successfully.");
+    } else {
+        ESP_LOGE(TAG, "AI Pilot Mode: Voice Assistant failed to start!");
+    }
+}
+
+/**
+ * @brief 退出 AI 驾驶舱屏幕时停止语音助手服务
+ *
+ * 当离开 screen_ai_pilot_mode 屏幕时调用此函数，
+ * 安全地停止后台语音任务并释放相关资源（PSRAM 缓冲区等）。
+ */
+void custom_ui_stop_voice_assistant_on_screen_exit(void)
+{
+    ESP_LOGI(TAG, "AI Pilot Mode: Stopping Voice Assistant...");
+
+    voice_assistant_stop();
+
+    ESP_LOGI(TAG, "AI Pilot Mode: Voice Assistant stopped.");
 }
 
 #endif

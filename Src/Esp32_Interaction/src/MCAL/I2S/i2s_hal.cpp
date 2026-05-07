@@ -12,6 +12,11 @@ I2SHal& I2SHal::getInstance() {
 }
 
 bool I2SHal::begin() {
+    if (is_initialized) {
+        ESP_LOGI(TAG, "[MCAL] I2S HAL已初始化，跳过重复配置");
+        return true;
+    }
+
     // 1. 配置I2S驱动（标准传统配置）
     i2s_config_t i2s_config = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX | I2S_MODE_RX), // 全双工
@@ -54,6 +59,8 @@ bool I2SHal::begin() {
     // 5. 清除DMA缓冲区，防止启动噪音
     i2s_zero_dma_buffer(I2S_PORT);
     
+    is_initialized = true;
+
     // 动态打印初始化成功的参数，属于常规流程信息，使用 ESP_LOGI
     ESP_LOGI(TAG, "[MCAL] I2S HAL初始化完成（全双工 %dkHz）", I2S_SAMPLE_RATE / 1000);
     return true;

@@ -7,7 +7,7 @@
  */
 
 #include <Arduino.h>
-#include "../src/Service/Protocol/SensorState/sensor_state.h"
+#include "sensor_state.h"
 
 using namespace Greenhouse;
 

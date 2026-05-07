@@ -28,6 +28,7 @@ public:
     static const int DMA_BUF_COUNT = I2S_DMA_BUF_COUNT;   // DMA缓冲区数量
 
 private:
-    I2SHal() {} // 私有构造函数
+    I2SHal() : is_initialized(false) {} // 私有构造函数
     const i2s_port_t I2S_PORT = I2S_PORT_NUM;             // 使用宏定义的I2S端口
+    bool is_initialized;
 };

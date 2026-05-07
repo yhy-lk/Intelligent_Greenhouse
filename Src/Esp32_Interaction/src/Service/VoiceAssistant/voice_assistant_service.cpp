@@ -1,6 +1,7 @@
 #include "voice_assistant_service.h"
 #include "i2s_hal.h"
 #include "secrets.h"
+#include "../WifiService/wifi_service.h"
 #include <driver/i2s.h> // 引入底层驱动，用于动态切换采样率
 #include "esp_log.h"    // 引入ESP-IDF日志宏
 
@@ -9,6 +10,8 @@ static const char *TAG = "VOICE_SERVICE";
 
 VoiceAssistantService::VoiceAssistantService() 
     : current_state(VoiceState::WAITING), 
+      task_running(false),
+      task_handle(nullptr),
       record_buffer(nullptr), 
       recorded_samples_count(0), 
       downloaded_bytes_count(0),
@@ -21,6 +24,12 @@ VoiceAssistantService::~VoiceAssistantService() {
 }
 
 bool VoiceAssistantService::init() {
+    // 连接Wi-Fi（自动遍历 secrets.h 中的所有凭证）
+    if (!WifiService::getInstance().connect()) {
+        ESP_LOGE(TAG, "Wi-Fi connection failed! Cannot continue.");
+        return false;
+    }
+
     ESP_LOGI(TAG, "Initializing Audio Engine...");
     if (!I2SHal::getInstance().begin()) {
         ESP_LOGE(TAG, "I2S Engine Failed!");
@@ -45,25 +54,69 @@ bool VoiceAssistantService::init() {
 }
 
 void VoiceAssistantService::start_task(UBaseType_t priority, uint32_t stack_size) {
+    if (task_running) {
+        ESP_LOGW(TAG, "VoiceTask is already running, skipping start.");
+        return;
+    }
+    task_running = true;
     xTaskCreatePinnedToCore(
         task_handler,
         "VoiceTask",
         stack_size,
         this,
         priority,
-        NULL,
+        &task_handle,
         1 
     );
+    ESP_LOGI(TAG, "VoiceTask started on Core 1.");
+}
+
+void VoiceAssistantService::stop() {
+    ESP_LOGI(TAG, "Stopping Voice Assistant...");
+
+    // 1. 设置运行标志为 false，通知任务退出主循环
+    task_running = false;
+
+    // 2. 等待任务自行退出（给它一点时间完成当前状态）
+    if (task_handle != nullptr) {
+        // 等待最多 500ms 让任务自行退出
+        for (int i = 0; i < 50; i++) {
+            // 直接判断指针是否被清空，不要调用 eTaskGetState
+            if (task_handle == nullptr) {
+                break;
+            }
+            vTaskDelay(pdMS_TO_TICKS(10));
+        }
+        
+        // 如果500ms后仍未自行退出且指针依然存在，则强行删除 (作为防死锁的兜底)
+        if (task_handle != nullptr) {
+            vTaskDelete(task_handle);
+            task_handle = nullptr;
+        }
+    }
+    
+    // 3. 重置状态机
+    current_state = VoiceState::WAITING;
+    current_silent_samples = 0;
+    recorded_samples_count = 0;
+    downloaded_bytes_count = 0;
+    current_text.clear();
+
+    ESP_LOGI(TAG, "Voice Assistant stopped.");
 }
 
 void VoiceAssistantService::task_handler(void* pvParameters) {
     VoiceAssistantService* service = static_cast<VoiceAssistantService*>(pvParameters);
-    while (true) {
+    while (service->task_running) {
         service->state_machine_tick();
         if (service->current_state != VoiceState::RECORDING && service->current_state != VoiceState::PLAYBACK) {
             vTaskDelay(pdMS_TO_TICKS(10)); 
         }
     }
+    // 任务退出前删除自身
+    service->task_handle = nullptr;
+    ESP_LOGI(TAG, "VoiceTask exiting...");
+    vTaskDelete(NULL);
 }
 
 void VoiceAssistantService::state_machine_tick() {
@@ -199,7 +252,7 @@ void VoiceAssistantService::state_machine_tick() {
             int pcm_samples_to_play = (downloaded_bytes_count - 44) / 2;
             
             // 数字音量控制 (减弱功放声音，可按需修改)
-            int volume_divider = 10; 
+            int volume_divider = 1; 
             for (int i = 0; i < pcm_samples_to_play; i++) {
                 pcm_start[i] = pcm_start[i] / volume_divider; 
             }

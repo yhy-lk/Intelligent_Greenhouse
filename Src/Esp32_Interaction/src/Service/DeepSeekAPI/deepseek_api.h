@@ -26,7 +26,6 @@ class DeepSeekApi {
 public:
     DeepSeekApi();
     
-    bool connect_to_wifi();
     bool is_connected();
     
     std::string ask(const std::string& question, const DeepSeekConfig& config = {});

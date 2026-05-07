@@ -626,6 +626,20 @@ static void screen_ai_pilot_mode_event_handler (lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     switch (code) {
+    case LV_EVENT_SCREEN_LOAD_START:
+    {
+#ifndef _WIN32
+        custom_ui_start_voice_assistant_on_screen_enter();
+#endif
+        break;
+    }
+    case LV_EVENT_SCREEN_UNLOAD_START:
+    {
+#ifndef _WIN32
+        custom_ui_stop_voice_assistant_on_screen_exit();
+#endif
+        break;
+    }
     case LV_EVENT_GESTURE:
     {
         lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_active());
