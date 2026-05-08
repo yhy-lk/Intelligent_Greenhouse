@@ -10,10 +10,10 @@ from urllib.parse import urlencode
 from urllib.parse import quote_plus
 
 # 替换你的 API_KEY
-API_KEY = 'nYk2kmLs1bsN1h4Pr1NTvZQ5'
+API_KEY = 'YOUR_BAIDU_API_KEY'
 
 # 替换你的 SECRET_KEY
-SECRET_KEY = 'trgH8uzBhpJ6911nCROm7pYTAr9j03PN'
+SECRET_KEY = 'YOUR_BAIDU_SECRET_KEY'
 
 # 大姚的订单信息内容文本
 TEXT = "三分钟前，由北京市顺义区二经路与二纬路交汇处北侧，北京首都国际机场T3航站楼 去往 东城区北三环东路36号喜来登大酒店(北京金隅店)"

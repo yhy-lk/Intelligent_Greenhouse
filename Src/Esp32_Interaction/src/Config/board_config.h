@@ -22,11 +22,11 @@
 // #define QUEUE_LENGTH_RESPONSE 3         // 响应队列长度 - 从5减小
 
 // // Wi-Fi配置
-// #define WIFI_SSID "423-2.4G"
-// #define WIFI_PASSWORD "12345678"
+// #define WIFI_SSID "YOUR_WIFI_SSID"
+// #define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
 
 // // DeepSeek API配置
-// #define DEEPSEEK_API_KEY "sk-dac522d4a37942d5ae25379f9adad6d6"
+// #define DEEPSEEK_API_KEY "YOUR_DEEPSEEK_API_KEY"
 // #define DEEPSEEK_API_URL "https://api.deepseek.com/v1/chat/completions"
 // #define DEEPSEEK_MODEL "deepseek-chat"
 
